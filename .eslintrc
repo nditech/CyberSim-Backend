@@ -1,0 +1,15 @@
+{
+  "env": {
+    "jest": true,
+    "node": true
+  },
+  "extends": "airbnb",
+  "plugins": [
+    "jest"
+  ],
+  "rules": {
+    "no-nested-ternary": 0,
+    "strict": "off",
+    "no-console": "off"
+  }
+}
