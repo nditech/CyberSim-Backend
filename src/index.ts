@@ -1,13 +1,16 @@
+import {createServer} from 'http'
+
 import app from './app'
+import createSocket from './socketio'
 
 const port = process.env.PORT || 3000
-
-const server = app.listen(port, () => {
+const http = createServer(app)
+createSocket(http)
+const server = http.listen(port, () => {
   console.log('Server is running at port: ' + port)
 })
 
 let shuttingDown = false
-
 const gracefulShutdown = async () => {
   console.info('Got kill signal, starting graceful shutdown')
   if (shuttingDown) {
@@ -25,5 +28,4 @@ const gracefulShutdown = async () => {
   console.info('Graceful shutdown finished')
   process.exit(0)
 }
-
 process.on('SIGTERM', gracefulShutdown)
