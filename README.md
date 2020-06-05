@@ -5,6 +5,11 @@
 
 Start postgres docker: `docker-compose up -d`
 
+Stop postgres docker: `docker-compose down`
+
+
 Migrate NDI table: `npm run migrate`
+
 Rollback NDI table: `npm run unmigrate`
+
 Seed NDI table: `npm run seed`

@@ -4,7 +4,7 @@ const app = require('./src/app');
 const createSocket = require('./src/socketio');
 const logger = require('./src/logger');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 const http = createServer(app);
 createSocket(http);
 const server = http.listen(port, () => {
