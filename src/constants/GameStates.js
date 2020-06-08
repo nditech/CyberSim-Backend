@@ -1,0 +1,5 @@
+module.exports = {
+  SCORE: 'SCORE',
+  PREPARATION: 'PREPARATION',
+  PROGRESS: 'PROGRESS',
+};

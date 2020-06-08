@@ -1,7 +1,31 @@
 
 exports.seed = (knex) => knex('ndi').del()
   .then(() => knex('ndi').insert([
-    { id: 1, task: 'rowValue1' },
-    { id: 2, task: 'rowValue2' },
-    { id: 3, task: 'rowValue3' },
+    {
+      id: 'first game room',
+      state: 'PREPARATION',
+      poll: 100,
+      budget: 50000,
+      systems: {
+        computer: true,
+      },
+    },
+    {
+      id: 'second gameRRoom',
+      state: 'PROGRESS',
+      poll: 43,
+      budget: 30000,
+      systems: {
+        computer: false,
+      },
+    },
+    {
+      id: 'thrid Room',
+      state: 'SCORE',
+      poll: 63,
+      budget: 10000,
+      systems: {
+        computer: true,
+      },
+    },
   ]));
