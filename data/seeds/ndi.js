@@ -12,7 +12,7 @@ exports.seed = (knex) => knex('ndi').del()
     },
     {
       id: 'second gameRRoom',
-      state: 'PROGRESS',
+      state: 'SIMULATION',
       poll: 43,
       budget: 30000,
       systems: {
@@ -21,7 +21,7 @@ exports.seed = (knex) => knex('ndi').del()
     },
     {
       id: 'thrid Room',
-      state: 'SCORE',
+      state: 'ASSESSMENT',
       poll: 63,
       budget: 10000,
       systems: {
