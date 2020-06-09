@@ -1,4 +1,4 @@
-exports.up = (knex) => knex.schema.createTable('ndi', (tbl) => {
+exports.up = (knex) => knex.schema.createTable('game', (tbl) => {
   tbl.enu('state', [
     'ASSESSMENT',
     'PREPARATION',
@@ -14,4 +14,4 @@ exports.up = (knex) => knex.schema.createTable('ndi', (tbl) => {
   tbl.json('log');
 });
 
-exports.down = (knex) => knex.schema.dropTableIfExists('ndi');
+exports.down = (knex) => knex.schema.dropTableIfExists('game');

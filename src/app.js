@@ -28,8 +28,8 @@ app.get('/', async (req, res) => {
   });
 });
 
-app.get('/ndi', async (req, res) => {
-  const records = await db('ndi');
+app.get('/games', async (req, res) => {
+  const records = await db('game');
   res.json({ records });
 });
 

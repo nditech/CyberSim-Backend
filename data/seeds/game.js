@@ -1,6 +1,6 @@
 
-exports.seed = (knex) => knex('ndi').del()
-  .then(() => knex('ndi').insert([
+exports.seed = (knex) => knex('game').del()
+  .then(() => knex('game').insert([
     {
       id: 'first game room',
       state: 'PREPARATION',

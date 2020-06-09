@@ -13,7 +13,7 @@ module.exports = (http) => {
     socket.on(SocketEvents.CREATEGAME, async (id, callback) => {
       logger.info('[server](CREATEGAME): %s', JSON.stringify(id));
       try {
-        const [game] = await db('ndi').insert({
+        const [game] = await db('game').insert({
           id,
           state: 'PREPARATION',
           poll: 100,
@@ -38,7 +38,7 @@ module.exports = (http) => {
     socket.on(SocketEvents.JOINGAME, async (id, callback) => {
       logger.info('[server](JOINGAME): %s', JSON.stringify(id));
       try {
-        const game = await db('ndi').where({ id }).first();
+        const game = await db('game').where({ id }).first();
         if (!game) {
           callback({ error: 'Game not found!' });
         }
