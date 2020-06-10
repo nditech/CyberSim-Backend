@@ -33,8 +33,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Create a secure backup for the online party voter database',
       is_hq: true,
       is_local: false,
-      hq_cost: '1,500.00',
-      local_cost: '',
+      hq_cost: 1500,
       category: 'National party voter database',
     },
     {
@@ -43,7 +42,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 750,
-      local_cost: '',
       category: 'National party voter database',
     },
     {
@@ -52,7 +50,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'National party voter database',
     },
     {
@@ -60,8 +57,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Set up DDOS protection for Party website',
       is_hq: true,
       is_local: false,
-      hq_cost: '1,000.00',
-      local_cost: '',
+      hq_cost: 1000,
       category: 'National party website',
     },
     {
@@ -70,7 +66,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 750,
-      local_cost: '',
       category: 'National party website',
     },
     {
@@ -79,7 +74,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 750,
-      local_cost: '',
       category: 'National party website',
     },
     {
@@ -88,7 +82,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'National party website',
     },
     {
@@ -96,8 +89,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: "Use a reputable cloud-based email service (such as Gsuite or Microsoft Office 365) for staff's Purple Party (@purple_party.org) email accounts",
       is_hq: true,
       is_local: false,
-      hq_cost: '1,500.00',
-      local_cost: '',
+      hq_cost: 1500,
       category: 'Accounts',
     },
     {
@@ -105,7 +97,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Require two-factor authentication and strong passwords for all Party email accounts',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,500.00',
+      hq_cost: 1500,
       local_cost: 500,
       category: 'Accounts',
     },
@@ -124,7 +116,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'Accounts',
     },
     {
@@ -133,7 +124,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 250,
-      local_cost: '',
       category: 'Accounts',
     },
     {
@@ -142,7 +132,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'Accounts',
     },
     {
@@ -151,7 +140,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'Accounts',
     },
     {
@@ -160,7 +148,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'Accounts',
     },
     {
@@ -168,8 +155,8 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Require two-factor authentication and strong password on all administrator accounts for Party Facebook pages',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,000.00',
-      local_cost: '1,000.00',
+      hq_cost: 1000,
+      local_cost: 1000,
       category: 'Accounts',
     },
     {
@@ -186,8 +173,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Establish and enforce Facebook account management and offboarding policies',
       is_hq: true,
       is_local: false,
-      hq_cost: '1,250.00',
-      local_cost: '',
+      hq_cost: 1250,
       category: 'Accounts',
     },
     {
@@ -196,7 +182,6 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: false,
       hq_cost: 500,
-      local_cost: '',
       category: 'Accounts',
     },
     {
@@ -204,7 +189,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Establish and enforce WhatsApp group management and offboarding policies',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,000.00',
+      hq_cost: 1000,
       local_cost: 750,
       category: 'Accounts',
     },
@@ -213,8 +198,8 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Establish secure backup solutions for all Party devices and data; require regular backups by all Party staff/volunteers',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,500.00',
-      local_cost: '1,500.00',
+      hq_cost: 1500,
+      local_cost: 1500,
       category: 'Devices',
     },
     {
@@ -222,8 +207,8 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Purchase and monitor an advanced malware detection system on all Party staff/volunteer computers',
       is_hq: true,
       is_local: true,
-      hq_cost: '3,000.00',
-      local_cost: '3,000.00',
+      hq_cost: 3000,
+      local_cost: 3000,
       category: 'Devices',
     },
     {
@@ -231,7 +216,7 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Purchase and monitor a mobile phone device management system on all Party staff/volunteer mobile devices',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,000.00',
+      hq_cost: 1000,
       local_cost: 750,
       category: 'Devices',
     },
@@ -240,8 +225,8 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Enforce policy requiring all Party staff/volunteers to lock mobile phones',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,000.00',
-      local_cost: '1,000.00',
+      hq_cost: 1000,
+      local_cost: 1000,
       category: 'Devices',
     },
     {
@@ -249,8 +234,8 @@ exports.seed = (knex) => knex('mitigation').del()
       description: 'Enforce policy requiring all Party staff/volunteers to lock computers',
       is_hq: true,
       is_local: true,
-      hq_cost: '1,000.00',
-      local_cost: '1,000.00',
+      hq_cost: 1000,
+      local_cost: 1000,
       category: 'Devices',
     },
     {
@@ -259,7 +244,7 @@ exports.seed = (knex) => knex('mitigation').del()
       is_hq: true,
       is_local: true,
       hq_cost: 750,
-      local_cost: '1,250.00',
+      local_cost: 1250,
       category: 'Devices',
     },
     {
