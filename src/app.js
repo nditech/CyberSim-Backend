@@ -33,4 +33,9 @@ app.get('/games', async (req, res) => {
   res.json({ records });
 });
 
+app.get('/mitigations', async (req, res) => {
+  const records = await db('mitigation');
+  res.json({ records });
+});
+
 module.exports = app;

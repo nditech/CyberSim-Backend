@@ -3,12 +3,13 @@ exports.up = (knex) => knex.schema.createTable('game', (tbl) => {
     'ASSESSMENT',
     'PREPARATION',
     'SIMULATION',
-  ]).notNullable();
+  ]).notNullable().defaultTo('PREPARATION');
   tbl.string('id').notNullable();
   tbl.index('id');
   tbl.unique('id');
-  tbl.integer('poll').notNullable();
-  tbl.integer('budget').notNullable();
+  tbl.integer('poll').notNullable().defaultTo(0);
+  tbl.integer('budget').notNullable().defaultTo(0);
+  tbl.integer('allocated_budget').defaultTo(0);
   tbl.timestamp('started_at');
   tbl.json('systems');
   tbl.json('mitigations');

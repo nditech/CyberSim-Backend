@@ -21,12 +21,14 @@ module.exports = (http) => {
           systems: {
             computer: false,
           },
+          allocated_budget: 0,
         }, [
           'id',
           'state',
           'poll',
           'budget',
           'systems',
+          'allocated_budget',
         ]);
         callback({ game });
       } catch (_) {

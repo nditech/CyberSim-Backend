@@ -10,6 +10,7 @@ exports.up = (knex) => knex.schema.createTable('mitigation', (tbl) => {
   tbl.enu('category', [
     'Operation',
     'National party voter database',
+    'National party website',
     'Accounts',
     'Devices',
   ]).notNullable();
