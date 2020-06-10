@@ -11,6 +11,7 @@ exports.up = (knex) => knex.schema.createTable('game', (tbl) => {
   tbl.integer('budget').notNullable();
   tbl.timestamp('started_at');
   tbl.json('systems');
+  tbl.json('mitigations');
   tbl.json('log');
 });
 
