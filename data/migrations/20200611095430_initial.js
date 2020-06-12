@@ -129,7 +129,23 @@ exports.up = async (knex) => {
     ]).notNullable().defaultTo('PREPARATION');
     tbl.integer('poll').notNullable().defaultTo(0);
     tbl.integer('budget').notNullable().defaultTo(0);
+    /*
+      // When starting the timer:
+      paused = false
+      started_at = Date.now()
+
+      // When pausing the timer:
+      paused = true
+      millis_taken_before_started = millis_taken_before_started + (now - started_at)
+
+      // Calculate taken time in millis:
+      paused
+        ? millis_taken_before_started
+        : (now - started_at) + millis_taken_before_started
+    */
     tbl.timestamp('started_at');
+    tbl.boolean('paused').notNullable().defaultTo(true);
+    tbl.integer('millis_taken_before_started').notNullable().defaultTo(0);
     tbl
       .integer('mitigations_id')
       .unsigned()

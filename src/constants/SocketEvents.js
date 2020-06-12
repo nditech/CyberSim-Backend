@@ -5,4 +5,7 @@ module.exports = {
   JOINGAME: 'joinGame',
   GAMEUPDATED: 'gameUpdated',
   CHANGEMITIGATION: 'changeMitigation',
+  STARTSIMULATION: 'startSimulation',
+  PAUSESIMULATION: 'pauseSimulation',
+  FINISHSIMULATION: 'finishSimulation',
 };

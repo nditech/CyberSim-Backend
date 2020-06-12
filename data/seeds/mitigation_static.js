@@ -1,7 +1,7 @@
 /*
   STATIC CONTECT
   Add new fields of mitigation id to game_mititgations table schema
-  when new mitigations are added to this seed
+  when new mitigations are added to this seed (this means new migrations after production)
 */
 
 exports.seed = (knex) => knex('mitigation').del()

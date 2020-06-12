@@ -7,6 +7,8 @@ const getGame = (id) => db('game')
     'game.poll',
     'game.budget',
     'game.started_at',
+    'game.stopped',
+    'game.millis_taken_before_started',
     db.raw('to_json(game_mitigations.*) as mitigations'),
     db.raw('to_json(game_logs.*) as logs'),
     db.raw('to_json(game_systems.*) as systems'),
@@ -58,4 +60,33 @@ const changeMitigation = async ({
   return getGame(gameId);
 };
 
-module.exports = { createGame, getGame, changeMitigation };
+const startSimulation = async (gameId) => {
+  await db('game')
+    .where({ id: gameId, state: 'PREPARATION' })
+    .orWhere({ id: gameId, state: 'SIMULATION' })
+    .update({ state: 'SIMULATION', started_at: Date.now(), paused: false });
+  return getGame(gameId);
+};
+
+const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
+  const {
+    millis_taken_before_started: millisTakenBeforeStarted,
+    started_at: startedAt,
+  } = await db('game').select('millis_taken_before_started', 'started_at').where({ id: gameId, state: 'SIMULATION' }).first();
+  await db('game')
+    .where({ id: gameId, state: 'SIMULATION' })
+    .update({
+      millis_taken_before_started: millisTakenBeforeStarted + (Date.now() - startedAt),
+      paused: true,
+      ...(finishSimulation ? { state: 'ASSESSMENT' } : {}),
+    });
+  return getGame(gameId);
+};
+
+module.exports = {
+  createGame,
+  getGame,
+  changeMitigation,
+  startSimulation,
+  pauseSimulation,
+};
