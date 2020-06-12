@@ -46,7 +46,7 @@ module.exports = (http) => {
         gameId = id;
         callback({ game });
       } catch (error) {
-        logger.error('JOINGAME ERROR', error);
+        logger.error('JOINGAME ERROR: %s', error);
         callback({ error: 'Server error on join game!' });
       }
     });

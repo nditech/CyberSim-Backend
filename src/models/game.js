@@ -7,7 +7,7 @@ const getGame = (id) => db('game')
     'game.poll',
     'game.budget',
     'game.started_at',
-    'game.stopped',
+    'game.paused',
     'game.millis_taken_before_started',
     db.raw('to_json(game_mitigations.*) as mitigations'),
     db.raw('to_json(game_logs.*) as logs'),
@@ -64,7 +64,7 @@ const startSimulation = async (gameId) => {
   await db('game')
     .where({ id: gameId, state: 'PREPARATION' })
     .orWhere({ id: gameId, state: 'SIMULATION' })
-    .update({ state: 'SIMULATION', started_at: Date.now(), paused: false });
+    .update({ state: 'SIMULATION', started_at: db.fn.now(), paused: false });
   return getGame(gameId);
 };
 
@@ -76,7 +76,8 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
   await db('game')
     .where({ id: gameId, state: 'SIMULATION' })
     .update({
-      millis_taken_before_started: millisTakenBeforeStarted + (Date.now() - startedAt),
+      millis_taken_before_started:
+        millisTakenBeforeStarted + (Date.now() - new Date(startedAt).getTime()),
       paused: true,
       ...(finishSimulation ? { state: 'ASSESSMENT' } : {}),
     });
