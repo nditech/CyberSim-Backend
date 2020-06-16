@@ -107,10 +107,10 @@ exports.up = async (knex) => {
     tbl.boolean('S1').notNullable().defaultTo(true);
     tbl.boolean('S2').notNullable().defaultTo(true);
     tbl.boolean('S3').notNullable().defaultTo(true);
-    tbl.boolean('S4').notNullable().defaultTo(true);
-    tbl.boolean('S5').notNullable().defaultTo(true);
-    tbl.boolean('S6').notNullable().defaultTo(true);
-    tbl.boolean('S7').notNullable().defaultTo(true);
+    tbl.boolean('S4').notNullable().defaultTo(false); // TODO: switch back to true
+    tbl.boolean('S5').notNullable().defaultTo(false); // TODO: switch back to true
+    tbl.boolean('S6').notNullable().defaultTo(false); // TODO: switch back to true
+    tbl.boolean('S7').notNullable().defaultTo(false); // TODO: switch back to true
     tbl.boolean('S8').notNullable().defaultTo(true);
     tbl.boolean('S9').notNullable().defaultTo(true);
     tbl.boolean('S10').notNullable().defaultTo(true);
