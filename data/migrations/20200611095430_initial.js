@@ -1,9 +1,7 @@
 
 exports.up = async (knex) => {
   await knex.schema.createTable('system', (tbl) => {
-    tbl.string('id').notNullable();
-    tbl.index('id');
-    tbl.unique('id');
+    tbl.string('id').primary().notNullable();
     tbl.string('name').notNullable();
     tbl.string('description');
     tbl.enu('type', [
@@ -14,9 +12,7 @@ exports.up = async (knex) => {
   });
 
   await knex.schema.createTable('mitigation', (tbl) => {
-    tbl.string('id').notNullable();
-    tbl.index('id');
-    tbl.unique('id');
+    tbl.string('id').primary().notNullable();
     tbl.string('description').notNullable();
     tbl.integer('hq_cost');
     tbl.integer('local_cost');
@@ -29,6 +25,49 @@ exports.up = async (knex) => {
       'Accounts',
       'Devices',
     ]).notNullable();
+  });
+
+  await knex.schema.createTable('response', (tbl) => {
+    tbl.string('id').primary().notNullable();
+    tbl.string('description').notNullable();
+    tbl.integer('cost');
+    // use local/branch/both mitigation costs if no cost specified above
+    tbl.enu('location', ['HQ', 'Local', 'Party']).notNullable();
+    tbl.string('mitigation_id');
+    tbl
+      .foreign('mitigation_id')
+      .references('id')
+      .inTable('mitigation');
+    // Restore system at game state on response made
+    tbl.specificType('systems_to_restore', 'text ARRAY'); // Switch these systems to TRUE
+    tbl.string('required_mitigation'); // ALLOW response if requirement met
+  });
+
+  await knex.schema.createTable('injection', (tbl) => {
+    tbl.string('id').primary().notNullable();
+    tbl.string('title').notNullable();
+    tbl.string('description').notNullable();
+    tbl.integer('trigger_time').notNullable(); // in ms
+    tbl.enu('location', ['HQ', 'Local']);
+    tbl.enu('type', ['Table', 'Background', 'Board']).notNullable();
+    tbl.string('recipient_role');
+    tbl.string('asset_code');
+    // These three values are only information for the game state to be checked upon injection
+    tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for game
+    // tbl.string('skipper_response'); // TODO: ? SKIP injection if response is TRUE for game
+    tbl.string('required_injection'); // SKIP this injection if referenced ijection did not happen for game
+    // Emit these changes on game state
+    tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
+    tbl.integer('poll_change');
+  });
+
+  // JOIN reponses to injections based on this many-to-many relation
+  await knex.schema.createTable('injectionResponses', (tbl) => {
+    tbl.increments('id');
+    tbl.string('injection_id').notNullable();
+    tbl.string('response_id').notNullable();
+    tbl.foreign('injection_id').references('id').inTable('injection');
+    tbl.foreign('response_id').references('id').inTable('response');
   });
 
   await knex.schema.createTable('game_mitigations', (tbl) => {
@@ -119,9 +158,7 @@ exports.up = async (knex) => {
   });
 
   await knex.schema.createTable('game', (tbl) => {
-    tbl.string('id').notNullable();
-    tbl.index('id');
-    tbl.unique('id');
+    tbl.string('id').primary().notNullable();
     tbl.enu('state', [
       'ASSESSMENT',
       'PREPARATION',
@@ -166,4 +203,7 @@ exports.down = async (knex) => {
   await knex.schema.dropTableIfExists('game_systems');
   await knex.schema.dropTableIfExists('mitigation');
   await knex.schema.dropTableIfExists('system');
+  await knex.schema.dropTableIfExists('response');
+  await knex.schema.dropTableIfExists('injection');
+  await knex.schema.dropTableIfExists('injectionResponses');
 };
