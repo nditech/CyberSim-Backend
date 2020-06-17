@@ -30,10 +30,7 @@ app.get('/', async (req, res) => {
   });
 });
 
-app.get('/games', async (req, res) => {
-  const records = await db('game');
-  res.json(records);
-});
+// STATIC DB data are expose via REST api
 
 app.get('/mitigations', async (req, res) => {
   const records = await db('mitigation');
@@ -42,6 +39,11 @@ app.get('/mitigations', async (req, res) => {
 
 app.get('/systems', async (req, res) => {
   const records = await db('system');
+  res.json(records);
+});
+
+app.get('/injections', async (req, res) => {
+  const records = await db('injections');
   res.json(records);
 });
 

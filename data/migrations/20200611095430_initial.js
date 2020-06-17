@@ -58,7 +58,7 @@ exports.up = async (knex) => {
     tbl.string('required_injection'); // SKIP this injection if referenced ijection did not happen for game
     // Emit these changes on game state
     tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
-    tbl.integer('poll_change');
+    tbl.decimal('poll_change');
   });
 
   // JOIN reponses to injections based on this many-to-many relation
@@ -201,9 +201,9 @@ exports.down = async (knex) => {
   await knex.schema.dropTableIfExists('game_mitigations');
   await knex.schema.dropTableIfExists('game_logs');
   await knex.schema.dropTableIfExists('game_systems');
-  await knex.schema.dropTableIfExists('mitigation');
   await knex.schema.dropTableIfExists('system');
+  await knex.schema.dropTableIfExists('injectionResponses');
   await knex.schema.dropTableIfExists('response');
   await knex.schema.dropTableIfExists('injection');
-  await knex.schema.dropTableIfExists('injectionResponses');
+  await knex.schema.dropTableIfExists('mitigation');
 };
