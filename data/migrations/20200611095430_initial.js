@@ -40,20 +40,22 @@ exports.up = async (knex) => {
       .inTable('mitigation');
     // Restore system at game state on response made
     tbl.specificType('systems_to_restore', 'text ARRAY'); // Switch these systems to TRUE
-    tbl.string('required_mitigation'); // ALLOW response if requirement met
+    tbl.string('required_mitigation'); // ALLOW response if requirement met with given type below
+    tbl.enu('required_mitigation_type', ['hq', 'local', 'both']).defaultTo('both');
   });
 
   await knex.schema.createTable('injection', (tbl) => {
     tbl.string('id').primary().notNullable();
-    tbl.string('title').notNullable();
-    tbl.string('description').notNullable();
+    tbl.string('title'); // TODO: add notNullable
+    tbl.string('description'); // TODO: add notNullable
     tbl.integer('trigger_time').notNullable(); // in ms
     tbl.enu('location', ['HQ', 'Local']);
     tbl.enu('type', ['Table', 'Background', 'Board']).notNullable();
     tbl.string('recipient_role');
     tbl.string('asset_code');
     // These three values are only information for the game state to be checked upon injection
-    tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for game
+    tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for the game in given type below
+    tbl.enu('skipper_mitigation_type', ['hq', 'local', 'both']).defaultTo('both');
     // tbl.string('skipper_response'); // TODO: ? SKIP injection if response is TRUE for game
     tbl.string('required_injection'); // SKIP this injection if referenced ijection did not happen for game
     // Emit these changes on game state
@@ -106,25 +108,11 @@ exports.up = async (knex) => {
     tbl.boolean('M1_local').notNullable().defaultTo(false);
     tbl.boolean('M2_local').notNullable().defaultTo(false);
     tbl.boolean('M3_local').notNullable().defaultTo(false);
-    tbl.boolean('M4_local').notNullable().defaultTo(false);
-    tbl.boolean('M5_local').notNullable().defaultTo(false);
-    tbl.boolean('M6_local').notNullable().defaultTo(false);
-    tbl.boolean('M7_local').notNullable().defaultTo(false);
-    tbl.boolean('M8_local').notNullable().defaultTo(false);
-    tbl.boolean('M9_local').notNullable().defaultTo(false);
-    tbl.boolean('M10_local').notNullable().defaultTo(false);
     tbl.boolean('M11_local').notNullable().defaultTo(false);
     tbl.boolean('M12_local').notNullable().defaultTo(false);
     tbl.boolean('M13_local').notNullable().defaultTo(false);
-    tbl.boolean('M14_local').notNullable().defaultTo(false);
-    tbl.boolean('M15_local').notNullable().defaultTo(false);
-    tbl.boolean('M16_local').notNullable().defaultTo(false);
-    tbl.boolean('M17_local').notNullable().defaultTo(false);
-    tbl.boolean('M18_local').notNullable().defaultTo(false);
     tbl.boolean('M19_local').notNullable().defaultTo(false);
     tbl.boolean('M20_local').notNullable().defaultTo(false);
-    tbl.boolean('M21_local').notNullable().defaultTo(false);
-    tbl.boolean('M22_local').notNullable().defaultTo(false);
     tbl.boolean('M23_local').notNullable().defaultTo(false);
     tbl.boolean('M24_local').notNullable().defaultTo(false);
     tbl.boolean('M25_local').notNullable().defaultTo(false);

@@ -43,7 +43,7 @@ app.get('/systems', async (req, res) => {
 });
 
 app.get('/injections', async (req, res) => {
-  const records = await db('injections');
+  const records = await db('injection');
   res.json(records);
 });
 
