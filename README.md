@@ -6,10 +6,12 @@ Start postgres docker: `docker-compose up -d`
 
 Stop postgres docker: `docker-compose down`
 
-Migrate tables: `npm run migrate`
+Reset db (unmigrate => migrate => seed): `npm run reset-db`
 
-Rollback tables: `npm run unmigrate`
+- Migrate tables: `npm run migrate`
 
-Seed NDI table: `npm run seed`
+- Rollback tables: `npm run unmigrate`
+
+- Seed NDI table: `npm run seed`
 
 Start API: `npm run start`

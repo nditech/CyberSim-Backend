@@ -47,4 +47,9 @@ app.get('/injections', async (req, res) => {
   res.json(records);
 });
 
+app.get('/responses', async (req, res) => {
+  const records = await db('response');
+  res.json(records);
+});
+
 module.exports = app;
