@@ -5,9 +5,9 @@ exports.up = async (knex) => {
     tbl.string('name').notNullable();
     tbl.string('description');
     tbl.enu('type', [
-      'HQ',
-      'Party',
-      'LB',
+      'hq',
+      'party',
+      'local',
     ]).notNullable();
   });
 
@@ -31,8 +31,8 @@ exports.up = async (knex) => {
     tbl.string('id').primary().notNullable();
     tbl.string('description').notNullable();
     tbl.integer('cost');
-    // use local/branch/both mitigation costs if no cost specified above
-    tbl.enu('location', ['HQ', 'Local', 'Party']).notNullable();
+    // use local/branch/both mitigation costs if no (no means null not 0) cost specified above
+    tbl.enu('location', ['hq', 'local', 'party']).notNullable();
     tbl.string('mitigation_id');
     tbl
       .foreign('mitigation_id')
@@ -49,7 +49,7 @@ exports.up = async (knex) => {
     tbl.string('title'); // TODO: add notNullable
     tbl.string('description'); // TODO: add notNullable
     tbl.integer('trigger_time').notNullable(); // in ms
-    tbl.enu('location', ['HQ', 'Local']);
+    tbl.enu('location', ['hq', 'local']);
     tbl.enu('type', ['Table', 'Background', 'Board']).notNullable();
     tbl.string('recipient_role');
     tbl.string('asset_code');

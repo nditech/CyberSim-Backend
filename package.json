@@ -10,6 +10,7 @@
     "migrate": "knex migrate:latest",
     "unmigrate": "knex migrate:rollback",
     "seed": "knex seed:run ",
+    "reset-db": "npm run unmigrate && npm run migrate && npm run seed",
     "lint": "eslint .",
     "test": "jest"
   },
