@@ -31,7 +31,7 @@ exports.up = async (knex) => {
     tbl.string('id').primary().notNullable();
     tbl.string('description').notNullable();
     tbl.integer('cost');
-    // use local/branch/both mitigation costs if no (no means null not 0) cost specified above
+    // use local/branch/party mitigation costs if no (no means null not 0) cost specified above
     tbl.enu('location', ['hq', 'local', 'party']).notNullable();
     tbl.string('mitigation_id');
     tbl
@@ -41,7 +41,7 @@ exports.up = async (knex) => {
     // Restore system at game state on response made
     tbl.specificType('systems_to_restore', 'text ARRAY'); // Switch these systems to TRUE
     tbl.string('required_mitigation'); // ALLOW response if requirement met with given type below
-    tbl.enu('required_mitigation_type', ['hq', 'local', 'both']).defaultTo('both');
+    tbl.enu('required_mitigation_type', ['hq', 'local', 'party']).defaultTo('party');
   });
 
   await knex.schema.createTable('injection', (tbl) => {
@@ -55,9 +55,9 @@ exports.up = async (knex) => {
     tbl.string('asset_code');
     // These three values are only information for the game state to be checked upon injection
     tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for the game in given type below
-    tbl.enu('skipper_mitigation_type', ['hq', 'local', 'both']).defaultTo('both');
-    // tbl.string('skipper_response'); // TODO: ? SKIP injection if response is TRUE for game
+    tbl.enu('skipper_mitigation_type', ['hq', 'local', 'party']).defaultTo('party');
     tbl.string('required_injection'); // SKIP this injection if referenced ijection did not happen for game
+    // tbl.string('skipper_response'); // TODO: ? SKIP injection if response is TRUE for game
     // Emit these changes on game state
     tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
     tbl.decimal('poll_change');

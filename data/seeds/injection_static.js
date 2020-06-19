@@ -200,7 +200,7 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -0.5,
       systems_to_disable: [],
       skipper_mitigation: 'M19',
-      skipper_mitigation_type: 'both',
+      skipper_mitigation_type: 'party',
       required_injection: null,
     },
     {
@@ -579,7 +579,7 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -1.5,
       systems_to_disable: [],
       skipper_mitigation: 'M23',
-      skipper_mitigation_type: 'both',
+      skipper_mitigation_type: 'party',
       required_injection: null,
     },
     {
