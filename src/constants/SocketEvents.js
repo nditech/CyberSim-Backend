@@ -8,4 +8,5 @@ module.exports = {
   STARTSIMULATION: 'startSimulation',
   PAUSESIMULATION: 'pauseSimulation',
   FINISHSIMULATION: 'finishSimulation',
+  RESTORESYSTEM: 'restoreSystem',
 };

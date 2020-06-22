@@ -5,6 +5,7 @@ const expressPino = require('express-pino-logger');
 
 const logger = require('./logger');
 const db = require('./models/db');
+const { getResponses } = require('./models/response');
 
 const app = express();
 
@@ -48,26 +49,8 @@ app.get('/injections', async (req, res) => {
 });
 
 app.get('/responses', async (req, res) => {
-  const records = await db('response')
-    .select(
-      'response.*',
-      'mitigation.hq_cost as hqMitCost',
-      'mitigation.local_cost as localMitCost',
-    )
-    .leftOuterJoin('mitigation', 'response.mitigation_id', 'mitigation.id');
-  res.json(records.map(({ hqMitCost, localMitCost, ...response }) => {
-    if (response.cost !== null) {
-      return response;
-    }
-    switch (response.location) {
-      case 'local':
-        return { ...response, cost: localMitCost || 0 };
-      case 'hq':
-        return { ...response, cost: hqMitCost || 0 };
-      default:
-        return { ...response, cost: (hqMitCost || 0) + (localMitCost || 0) };
-    }
-  }));
+  const records = await getResponses();
+  res.json(records);
 });
 
 module.exports = app;

@@ -8,6 +8,7 @@ const {
   changeMitigation,
   startSimulation,
   pauseSimulation,
+  makeResponse,
 } = require('./models/game');
 
 module.exports = (http) => {
@@ -64,12 +65,7 @@ module.exports = (http) => {
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
         callback({ game });
       } catch (error) {
-        logger.error('CHANGEMITIGATION ERROR: %s', error);
-        callback({
-          error: error.message === 'Not enought budget'
-            ? error.message
-            : 'Server error on change mitigation',
-        });
+        callback({ error: error.message });
       }
     });
 
@@ -78,11 +74,9 @@ module.exports = (http) => {
       try {
         const game = await startSimulation(gameId);
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        // TODO: start sending injections (needs planning)
         callback({ game });
       } catch (error) {
-        logger.error('STARTSIMULATION ERROR: %s', error);
-        callback({ error: 'Server error on start simulation' });
+        callback({ error: error.message });
       }
     });
 
@@ -91,28 +85,36 @@ module.exports = (http) => {
       try {
         const game = await pauseSimulation({ gameId });
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        // TODO: stop sending injections (needs planning)
         callback({ game });
       } catch (error) {
-        logger.error('PAUSESIMULATION ERROR: %s', error);
-        callback({ error: 'Server error on pause simulation' });
+        callback({ error: error.message });
       }
     });
 
     socket.on(SocketEvents.FINISHSIMULATION, async (callback) => {
-      logger.info('finishSimulation: %s', gameId);
+      logger.info('FINISHSIMULATION: %s', gameId);
       try {
         const game = await pauseSimulation({ gameId, finishSimulation: true });
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        // TODO: stop sending injections (needs planning)
         callback({ game });
       } catch (error) {
-        logger.error('finishSimulation ERROR: %s', error);
-        callback({ error: 'Server error on finish simulation' });
+        callback({ error: error.message });
       }
     });
+
     socket.on(SocketEvents.DISCONNECT, () => {
       logger.info('Facilitator DISCONNECT');
+    });
+
+    socket.on(SocketEvents.RESTORESYSTEM, async ({ responseId }, callback) => {
+      logger.info('RESTORESYSTEM: %s', JSON.stringify({ responseId, gameId }));
+      try {
+        const game = await makeResponse({ responseId, gameId });
+        io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+        callback({ game });
+      } catch (error) {
+        callback({ error: error.message });
+      }
     });
   });
 
