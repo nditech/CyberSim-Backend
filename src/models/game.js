@@ -11,19 +11,28 @@ const getGame = (id) => db('game')
     'game.started_at',
     'game.paused',
     'game.millis_taken_before_started',
-    db.raw('to_json(game_mitigations.*) as mitigations'),
-    db.raw('to_json(game_logs.*) as logs'),
-    db.raw('to_json(game_systems.*) as systems'),
+    db.raw('to_json(game_mitigations) as mitigations'),
+    db.raw('to_json(game_systems) as systems'),
+    'i.injections',
+    'l.logs',
   )
   .where({ 'game.id': id })
   .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
-  .join('game_logs', 'game.logs_id', 'game_logs.id')
   .join('game_systems', 'game.systems_id', 'game_systems.id')
+  .joinRaw(`
+    LEFT JOIN (
+      SELECT gi.game_id, array_agg(to_json(gi)) AS injections FROM game_injection gi GROUP BY gi.game_id
+    ) i ON i.game_id = game.id
+  `)
+  .joinRaw(`
+    LEFT JOIN (
+      SELECT gl.game_id, array_agg(to_json(gl)) AS logs FROM game_log gl GROUP BY gl.game_id
+    ) l ON l.game_id = game.id
+  `)
   .first();
 
 const createGame = async (id) => {
   const [{ id: mitigationsId }] = await db('game_mitigations').insert({}, ['id']);
-  const [{ id: logsId }] = await db('game_logs').insert({}, ['id']);
   const [{ id: systemsId }] = await db('game_systems').insert({}, ['id']);
   await db('game').insert({
     id,
@@ -31,7 +40,6 @@ const createGame = async (id) => {
     poll: 0,
     budget: 50000,
     mitigations_id: mitigationsId,
-    logs_id: logsId,
     systems_id: systemsId,
   }, ['id']);
   return getGame(id);
@@ -174,6 +182,13 @@ const makeResponse = async ({ responseId, gameId }) => {
   return getGame(gameId);
 };
 
+const injectGames = async () => {
+  // TODO: get non-paused in simulation games
+  // map over them
+  // check if any new injection should be created for the game (game_injection)
+  // return updated games in array
+};
+
 module.exports = {
   createGame,
   getGame,
@@ -181,4 +196,5 @@ module.exports = {
   startSimulation,
   pauseSimulation,
   makeResponse,
+  injectGames,
 };

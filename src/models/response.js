@@ -5,7 +5,7 @@ const getResponseWithCost = (responseWithMitigationCosts) => {
   if (response.cost !== null) {
     return response;
   }
-  switch (response.location) {
+  switch (response.mitigation_type) {
     case 'local':
       return { ...response, cost: localMitCost || 0 };
     case 'hq':

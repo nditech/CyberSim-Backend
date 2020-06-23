@@ -1,4 +1,5 @@
 const socketio = require('socket.io');
+// const cron = require('node-cron');
 
 const SocketEvents = require('./constants/SocketEvents');
 const logger = require('./logger');
@@ -9,10 +10,18 @@ const {
   startSimulation,
   pauseSimulation,
   makeResponse,
+  // injectGames,
 } = require('./models/game');
 
 module.exports = (http) => {
   const io = socketio(http);
+
+  // cron.schedule('*/5 * * * * *', async () => {
+  //   const games = await injectGames;
+  //   games.forEach((game) => {
+  //     io.in(game.id).emit(SocketEvents.GAMEUPDATED, game);
+  //   });
+  // });
 
   io.on(SocketEvents.CONNECT, (socket) => {
     logger.info('Facilitator CONNECT');
@@ -37,6 +46,7 @@ module.exports = (http) => {
       logger.info('JOINGAME: %s', id);
       try {
         const game = await getGame(id);
+        console.log(JSON.stringify(game, null, '\t'));
         if (!game) {
           callback({ error: 'Game not found!' });
         }

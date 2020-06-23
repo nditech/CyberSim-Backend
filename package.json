@@ -21,6 +21,7 @@
     "express-pino-logger": "5.0.0",
     "helmet": "3.22.0",
     "knex": "^0.21.1",
+    "node-cron": "^2.0.3",
     "pg": "^8.2.1",
     "pino": "6.3.2",
     "socket.io": "^2.3.0"

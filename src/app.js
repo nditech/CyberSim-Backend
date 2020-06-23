@@ -53,4 +53,9 @@ app.get('/responses', async (req, res) => {
   res.json(records);
 });
 
+app.get('/actions', async (req, res) => {
+  const records = await db('action');
+  res.json(records);
+});
+
 module.exports = app;

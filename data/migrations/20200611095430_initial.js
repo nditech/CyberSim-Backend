@@ -33,6 +33,7 @@ exports.up = async (knex) => {
     tbl.integer('cost');
     // use local/branch/party mitigation costs if no (no means null not 0) cost specified above
     tbl.enu('location', ['hq', 'local', 'party']).notNullable();
+    tbl.enu('mitigation_type', ['hq', 'local', 'party']);
     tbl.string('mitigation_id');
     tbl
       .foreign('mitigation_id')
@@ -53,23 +54,46 @@ exports.up = async (knex) => {
     tbl.enu('type', ['Table', 'Background', 'Board']).notNullable();
     tbl.string('recipient_role');
     tbl.string('asset_code');
-    // These three values are only information for the game state to be checked upon injection
+    // These two values are only information for the game state to be checked upon injection
     tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for the game in given type below
     tbl.enu('skipper_mitigation_type', ['hq', 'local', 'party']).defaultTo('party');
-    // Emit these changes on game state
+    // Emit these changes on game state when injection happens
     tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
     tbl.decimal('poll_change');
   });
 
-  // JOIN reponses to injections based on this many-to-many relation
-  await knex.schema.createTable('injectionResponses', (tbl) => {
+  // MANY injection_response to MANY injection
+  await knex.schema.createTable('injection_response', (tbl) => {
     tbl.increments('id');
     tbl.string('injection_id').notNullable();
     tbl.string('response_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
     tbl.foreign('response_id').references('id').inTable('response');
+    // TODO: If injection response is made prevent this injection from happening
+    tbl.string('injection_to_prevent');
+    tbl.foreign('injection_to_prevent').references('id').inTable('injection');
   });
 
+  await knex.schema.createTable('role', (tbl) => {
+    tbl.string('id').primary().notNullable();
+    tbl.string('name').notNullable();
+  });
+
+  await knex.schema.createTable('action', (tbl) => {
+    tbl.string('id').primary().notNullable();
+    tbl.string('description').notNullable();
+    tbl.enu('type', [
+      'hq',
+      'local',
+    ]).notNullable();
+    tbl.integer('cost').notNullable().defaultTo(0);
+    tbl.integer('budget_increase').notNullable().defaultTo(0);
+    tbl.decimal('poll_increase').notNullable().defaultTo(0);
+    tbl.specificType('authorized_roles', 'text ARRAY');
+    tbl.specificType('required_systems', 'text ARRAY');
+  });
+
+  // ONE game to ONE game_mitigations
   await knex.schema.createTable('game_mitigations', (tbl) => {
     tbl.increments('id');
     tbl.boolean('M1_hq').notNullable().defaultTo(false);
@@ -122,11 +146,7 @@ exports.up = async (knex) => {
     tbl.boolean('M31_local').notNullable().defaultTo(false);
   });
 
-  await knex.schema.createTable('game_logs', (tbl) => {
-    tbl.increments('id');
-    // TODO:
-  });
-
+  // ONE game to ONE game_systems
   await knex.schema.createTable('game_systems', (tbl) => {
     tbl.increments('id');
     tbl.boolean('S1').notNullable().defaultTo(true);
@@ -155,41 +175,53 @@ exports.up = async (knex) => {
     tbl.timestamp('started_at', { useTz: true });
     tbl.boolean('paused').notNullable().defaultTo(true);
     tbl.integer('millis_taken_before_started').notNullable().defaultTo(0);
-    tbl
-      .integer('mitigations_id')
-      .unsigned()
-      .notNullable();
-    tbl
-      .foreign('mitigations_id')
-      .references('id')
-      .inTable('game_mitigations');
-    tbl
-      .integer('logs_id')
-      .unsigned()
-      .notNullable();
-    tbl
-      .foreign('logs_id')
-      .references('id')
-      .inTable('game_logs');
-    tbl
-      .integer('systems_id')
-      .unsigned()
-      .notNullable();
-    tbl
-      .foreign('systems_id')
-      .references('id')
-      .inTable('game_systems');
+    tbl.integer('mitigations_id').unsigned().notNullable();
+    tbl.foreign('mitigations_id').references('id').inTable('game_mitigations');
+    tbl.integer('systems_id').unsigned().notNullable();
+    tbl.foreign('systems_id').references('id').inTable('game_systems');
+  });
+
+  // ONE game to MANY game_injection
+  await knex.schema.createTable('game_injection', (tbl) => {
+    tbl.increments('id');
+    tbl.string('game_id').notNullable();
+    tbl.foreign('game_id').references('id').inTable('game');
+    tbl.string('injection_id').notNullable();
+    tbl.foreign('injection_id').references('id').inTable('injection');
+    tbl.integer('response_made').unsigned();
+    tbl.foreign('response_made').references('id').inTable('injection_response');
+  });
+
+  // ONE game to MANY game_log
+  await knex.schema.createTable('game_log', (tbl) => {
+    tbl.increments('id');
+    tbl.string('game_id').notNullable();
+    tbl.foreign('game_id').references('id').inTable('game');
+    // TODO:
+    tbl.enu('type', [
+      'injection happened', // game_injection id, why
+      'injection prevented', // injection id, why
+      'budget item purchased', // mitigation id
+      'system related action', // response id
+      'hq action', // action id
+      'local action', // action id
+    ]).notNullable();
   });
 };
 
 exports.down = async (knex) => {
+  // dynamic
+  await knex.schema.dropTableIfExists('game_injection');
+  await knex.schema.dropTableIfExists('game_log');
   await knex.schema.dropTableIfExists('game');
-  await knex.schema.dropTableIfExists('game_mitigations');
-  await knex.schema.dropTableIfExists('game_logs');
   await knex.schema.dropTableIfExists('game_systems');
+  await knex.schema.dropTableIfExists('game_mitigations');
+  // static
   await knex.schema.dropTableIfExists('system');
-  await knex.schema.dropTableIfExists('injectionResponses');
+  await knex.schema.dropTableIfExists('injection_response');
   await knex.schema.dropTableIfExists('response');
   await knex.schema.dropTableIfExists('injection');
   await knex.schema.dropTableIfExists('mitigation');
+  await knex.schema.dropTableIfExists('role');
+  await knex.schema.dropTableIfExists('action');
 };
