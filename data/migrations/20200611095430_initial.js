@@ -56,8 +56,6 @@ exports.up = async (knex) => {
     // These three values are only information for the game state to be checked upon injection
     tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for the game in given type below
     tbl.enu('skipper_mitigation_type', ['hq', 'local', 'party']).defaultTo('party');
-    tbl.string('required_injection'); // SKIP this injection if referenced ijection did not happen for game
-    // tbl.string('skipper_response'); // TODO: ? SKIP injection if response is TRUE for game
     // Emit these changes on game state
     tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
     tbl.decimal('poll_change');

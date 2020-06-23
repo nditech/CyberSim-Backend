@@ -1,5 +1,5 @@
 /* TODO:
-  add asset_code, required_injection
+  add asset_code, titles
 */
 exports.seed = (knex) => knex('injection').del()
   .then(() => knex('injection').insert([
@@ -15,7 +15,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I2',
@@ -29,7 +28,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I3',
@@ -43,7 +41,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I4',
@@ -57,7 +54,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I5',
@@ -71,7 +67,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I6',
@@ -85,7 +80,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I7',
@@ -100,7 +94,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M14',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I8',
@@ -115,7 +108,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M14',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I9',
@@ -129,7 +121,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I10',
@@ -143,7 +134,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I11',
@@ -158,7 +148,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S9'],
       skipper_mitigation: 'M2',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I12',
@@ -172,7 +161,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I13',
@@ -186,7 +174,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I14',
@@ -201,7 +188,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M19',
       skipper_mitigation_type: 'party',
-      required_injection: null,
     },
     {
       id: 'I15',
@@ -215,7 +201,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -0.5,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I16',
@@ -229,7 +214,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I17',
@@ -243,7 +227,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I18',
@@ -257,7 +240,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I19',
@@ -271,7 +253,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I20',
@@ -286,7 +267,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S5'],
       skipper_mitigation: 'M3',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I21',
@@ -301,7 +281,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M28',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I22',
@@ -315,7 +294,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I23',
@@ -330,7 +308,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M12',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I24',
@@ -345,7 +322,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M12',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I25',
@@ -360,7 +336,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S8'],
       skipper_mitigation: 'M25',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I26',
@@ -374,7 +349,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I27',
@@ -388,7 +362,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -1.5,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I28',
@@ -402,7 +375,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I29',
@@ -417,7 +389,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M5',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I30',
@@ -432,7 +403,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M27',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I31',
@@ -447,7 +417,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M27',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I32',
@@ -462,7 +431,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S5'],
       skipper_mitigation: 'M2',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I33',
@@ -477,7 +445,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S9'],
       skipper_mitigation: 'M3',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I34',
@@ -491,7 +458,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I35',
@@ -506,7 +472,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M22',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I36',
@@ -521,7 +486,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S2'],
       skipper_mitigation: 'M21',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I37',
@@ -535,7 +499,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I38',
@@ -550,7 +513,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M11',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I39',
@@ -565,7 +527,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M11',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I40',
@@ -580,7 +541,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M23',
       skipper_mitigation_type: 'party',
-      required_injection: null,
     },
     {
       id: 'I41',
@@ -594,7 +554,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I42',
@@ -609,7 +568,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M19',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I43',
@@ -623,7 +581,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -1,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I44',
@@ -637,7 +594,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I45',
@@ -652,7 +608,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M1',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I46',
@@ -666,7 +621,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -2,
       systems_to_disable: ['S8', 'S9'],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I47',
@@ -681,7 +635,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M12',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I48',
@@ -696,7 +649,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M12',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I49',
@@ -710,7 +662,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I50',
@@ -725,7 +676,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S4'],
       skipper_mitigation: 'M6',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I51',
@@ -740,7 +690,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M26',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I52',
@@ -754,7 +703,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -2,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I53',
@@ -768,7 +716,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I54',
@@ -783,7 +730,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M8',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I55',
@@ -797,7 +743,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -1.5,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I56',
@@ -812,7 +757,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S5'],
       skipper_mitigation: 'M29',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I57',
@@ -827,7 +771,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S8', 'S9'],
       skipper_mitigation: 'M29',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I58',
@@ -841,7 +784,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I59',
@@ -856,7 +798,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M19',
       skipper_mitigation_type: 'local',
-      required_injection: null,
     },
     {
       id: 'I60',
@@ -870,7 +811,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -2,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I61',
@@ -885,7 +825,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: ['S2'],
       skipper_mitigation: 'M21',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I62',
@@ -899,7 +838,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -1.5,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I63',
@@ -914,7 +852,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M1',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I64',
@@ -929,7 +866,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M9',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I65',
@@ -943,7 +879,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I66',
@@ -957,7 +892,6 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: null,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
     {
       id: 'I67',
@@ -972,7 +906,6 @@ exports.seed = (knex) => knex('injection').del()
       systems_to_disable: [],
       skipper_mitigation: 'M19',
       skipper_mitigation_type: 'hq',
-      required_injection: null,
     },
     {
       id: 'I68',
@@ -986,6 +919,5 @@ exports.seed = (knex) => knex('injection').del()
       poll_change: -3,
       systems_to_disable: [],
       skipper_mitigation: null,
-      required_injection: null,
     },
   ]));
