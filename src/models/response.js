@@ -1,5 +1,7 @@
 const db = require('./db');
 
+// TODO: write tests for these functions
+
 const getResponseWithCost = (responseWithMitigationCosts) => {
   const { hqMitCost, localMitCost, ...response } = responseWithMitigationCosts;
   if (response.cost !== null) {

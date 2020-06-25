@@ -31,8 +31,8 @@ exports.up = async (knex) => {
     tbl.string('id').primary().notNullable();
     tbl.string('description').notNullable();
     tbl.integer('cost');
-    // use local/branch/party mitigation costs if no (no means null not 0) cost specified above
     tbl.enu('location', ['hq', 'local', 'party']).notNullable();
+    // use mitigation costs of mitigation_id if no (no means null not 0) cost specified above
     tbl.enu('mitigation_type', ['hq', 'local', 'party']);
     tbl.string('mitigation_id');
     tbl
@@ -42,7 +42,7 @@ exports.up = async (knex) => {
     // Restore system at game state on response made
     tbl.specificType('systems_to_restore', 'text ARRAY'); // Switch these systems to TRUE
     tbl.string('required_mitigation'); // ALLOW response if requirement met with given type below
-    tbl.enu('required_mitigation_type', ['hq', 'local', 'party']).defaultTo('party');
+    tbl.enu('required_mitigation_type', ['hq', 'local', 'party']);
   });
 
   await knex.schema.createTable('injection', (tbl) => {
@@ -56,7 +56,7 @@ exports.up = async (knex) => {
     tbl.string('asset_code');
     // These two values are only information for the game state to be checked upon injection
     tbl.string('skipper_mitigation'); // SKIP injection if mitigation is TRUE for the game in given type below
-    tbl.enu('skipper_mitigation_type', ['hq', 'local', 'party']).defaultTo('party');
+    tbl.enu('skipper_mitigation_type', ['hq', 'local', 'party']);
     // Emit these changes on game state when injection happens
     tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
     tbl.decimal('poll_change');
@@ -69,7 +69,6 @@ exports.up = async (knex) => {
     tbl.string('response_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
     tbl.foreign('response_id').references('id').inTable('response');
-    // TODO: If injection response is made prevent this injection from happening
     tbl.string('injection_to_prevent');
     tbl.foreign('injection_to_prevent').references('id').inTable('injection');
   });
@@ -170,8 +169,8 @@ exports.up = async (knex) => {
       'PREPARATION',
       'SIMULATION',
     ]).notNullable().defaultTo('PREPARATION');
-    tbl.decimal('poll').notNullable().defaultTo(0);
-    tbl.integer('budget').notNullable().defaultTo(0);
+    tbl.decimal('poll').notNullable().defaultTo(0); // TODO: use a real default
+    tbl.integer('budget').notNullable().defaultTo(50000); // TODO: use a real default
     tbl.timestamp('started_at', { useTz: true });
     tbl.boolean('paused').notNullable().defaultTo(true);
     tbl.integer('millis_taken_before_started').notNullable().defaultTo(0);
@@ -179,6 +178,8 @@ exports.up = async (knex) => {
     tbl.foreign('mitigations_id').references('id').inTable('game_mitigations');
     tbl.integer('systems_id').unsigned().notNullable();
     tbl.foreign('systems_id').references('id').inTable('game_systems');
+    tbl.specificType('prevented_injections', 'text ARRAY');
+    tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
   });
 
   // ONE game to MANY game_injection
