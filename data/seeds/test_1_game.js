@@ -4,19 +4,19 @@ exports.seed = async (knex) => {
   await knex('game').del();
   await knex('game_mitigations').del();
   await knex('game_systems').del();
-  const [{ id: gameMitigationsId }] = await knex('game_mitigations').insert({}, ['id']);
-  const [{ id: gameSystemsId }] = await knex('game_systems').insert({}, ['id']);
-  await knex('game').insert([
-    {
-      id: 'testGame',
-      state: 'SIMULATION',
-      poll: 80,
-      mitigations_id: gameMitigationsId,
-      systems_id: gameSystemsId,
-      started_at: knex.fn.now(),
-      paused: false,
-    },
-  ]);
+  // const [{ id: gameMitigationsId }] = await knex('game_mitigations').insert({}, ['id']);
+  // const [{ id: gameSystemsId }] = await knex('game_systems').insert({}, ['id']);
+  // await knex('game').insert([
+  //   {
+  //     id: 'testGame',
+  //     state: 'SIMULATION',
+  //     poll: 80,
+  //     mitigations_id: gameMitigationsId,
+  //     systems_id: gameSystemsId,
+  //     started_at: knex.fn.now(),
+  //     paused: false,
+  //   },
+  // ]);
   // await knex('game_injection').insert([
   //   {
   //     game_id: 'testGame',

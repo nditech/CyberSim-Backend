@@ -85,12 +85,17 @@ const changeMitigation = async ({
   return getGame(gameId);
 };
 
+let hasGamesToInject = true;
+let startingGame = false;
 const startSimulation = async (gameId) => {
   try {
+    startingGame = true;
     await db('game')
       .where({ id: gameId, state: 'PREPARATION' })
       .orWhere({ id: gameId, state: 'SIMULATION' })
       .update({ state: 'SIMULATION', started_at: db.fn.now(), paused: false });
+    hasGamesToInject = true;
+    startingGame = false;
   } catch (error) {
     logger.error('STARTSIMULATION ERROR: %s', error);
     throw new Error('Server error on start simulation');
@@ -193,7 +198,9 @@ const makeResponse = async ({ responseId, gameId }) => {
 };
 
 const injectGames = async () => {
-  // TODO: ? cache game count for this where statement somehow and skip this query if it is 0
+  if (!hasGamesToInject) {
+    return [];
+  }
   const games = await db('game')
     .select(
       'game.id',
@@ -214,6 +221,9 @@ const injectGames = async () => {
       ) i ON i.game_id = game.id
     `);
   if (games.length === 0) {
+    if (!startingGame) {
+      hasGamesToInject = false;
+    }
     return [];
   }
   const injections = await db('injection');
