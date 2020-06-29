@@ -8,7 +8,11 @@ const getInjections = async () => {
     )
     .joinRaw(`
     LEFT JOIN (
-      SELECT ir.injection_id, array_agg(ir.response_id) AS responses FROM injection_response ir GROUP BY ir.injection_id
+      SELECT ir.injection_id, array_agg(to_json(response)) AS responses
+      FROM injection_response ir
+      LEFT JOIN response
+      ON response.id = ir.response_id
+      GROUP BY ir.injection_id
     ) r ON r.injection_id = injection.id
   `);
   return records;
