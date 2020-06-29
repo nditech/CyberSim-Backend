@@ -9,4 +9,7 @@ module.exports = {
   PAUSESIMULATION: 'pauseSimulation',
   FINISHSIMULATION: 'finishSimulation',
   RESTORESYSTEM: 'restoreSystem',
+  DELIVEREINJECTION: 'delivereInjection',
+  RESPONDTOINJECTION: 'respondToInjection',
+  INCORRECTRESPONDTOINJECTION: 'incorrectRespondToInjection',
 };

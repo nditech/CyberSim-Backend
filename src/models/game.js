@@ -1,5 +1,5 @@
 const db = require('./db');
-const { getResponse } = require('./response');
+const { getResponsesById } = require('./response');
 const logger = require('../logger');
 
 // TODO: write tests for these functions
@@ -76,7 +76,7 @@ const changeMitigation = async ({
         .update({ [gameMitigationId]: mitigationValue });
     }
   } catch (error) {
-    logger.error('CHANGEMITIGATION ERROR: %s', error);
+    logger.error('changeMitigation ERROR: %s', error);
     if (error.message === 'Not enough budget') {
       throw error;
     }
@@ -97,7 +97,7 @@ const startSimulation = async (gameId) => {
     hasGamesToInject = true;
     startingGame = false;
   } catch (error) {
-    logger.error('STARTSIMULATION ERROR: %s', error);
+    logger.error('startSimulation ERROR: %s', error);
     throw new Error('Server error on start simulation');
   }
   return getGame(gameId);
@@ -122,44 +122,48 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
       });
   } catch (error) {
     if (finishSimulation) {
-      logger.error('FINISHSIMULATION ERROR: %s', error);
+      logger.error('finishSimulation ERROR: %s', error);
     } else {
-      logger.error('PAUSESIMULATION ERROR: %s', error);
+      logger.error('pauseSimulation ERROR: %s', error);
     }
     throw new Error('Server error on pause simulation');
   }
   return getGame(gameId);
 };
 
-const makeResponse = async ({ responseId, gameId }) => {
+// Use for respond to injection and restore system
+const makeResponses = async ({
+  responseIds, gameId, injectionId,
+}) => {
   try {
-    const {
-      cost,
-      location,
-      mitigation_id: mitigationId,
-      systems_to_restore: systemsToRestore,
-      required_mitigation: requiredMitigation,
-      required_mitigation_type: requiredMitigationType,
-    } = await getResponse(responseId);
+    const responses = await getResponsesById(responseIds);
+    console.log(responses);
     const game = await db('game')
       .select(
         'game.id',
         'game.budget',
         'game.systems_id',
+        'game.prevented_injections',
         db.raw('to_json(game_mitigations) as mitigations'),
       )
       .where({ 'game.id': gameId })
       .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
       .first();
     // CHECK REQUIRED MITIGATION
-    if (requiredMitigationType && requiredMitigation && !(
-      requiredMitigationType === 'party'
-        ? game.mitigations[`${requiredMitigation}_hq`] && game.mitigations[`${requiredMitigation}_local`]
-        : game.mitigations[`${requiredMitigation}_${requiredMitigationType}`]
-    )) {
-      throw new Error('Response not allowed');
-    }
+    responses.forEach(({
+      required_mitigation_type: requiredMitigationType,
+      required_mitigation: requiredMitigation,
+    }) => {
+      if (requiredMitigationType && requiredMitigation && !(
+        requiredMitigationType === 'party'
+          ? game.mitigations[`${requiredMitigation}_hq`] && game.mitigations[`${requiredMitigation}_local`]
+          : game.mitigations[`${requiredMitigation}_${requiredMitigationType}`]
+      )) {
+        throw new Error('Response not allowed');
+      }
+    });
     // CHECK AVAILABLE BUDGET
+    const cost = responses.reduce((acc, { cost: responseCost }) => acc + responseCost, 0);
     if (game.budget < cost) {
       throw new Error('Not enough budget');
     }
@@ -170,29 +174,77 @@ const makeResponse = async ({ responseId, gameId }) => {
         .update({ budget: game.budget - cost });
     }
     // SET MITIGATIONS
-    if (mitigationId) {
+    const gameMitigations = responses.reduce((acc, {
+      mitigation_type: mitigationType,
+      mitigation_id: mitigationId,
+    }) => {
+      if (mitigationId && mitigationType) {
+        return {
+          ...acc,
+          ...(mitigationType !== 'party'
+            ? { [`${mitigationId}_${mitigationType}`]: true }
+            : { [`${mitigationId}_local`]: true, [`${mitigationId}_hq`]: true }),
+        };
+      }
+      return acc;
+    }, {});
+    if (Object.keys(gameMitigations).length !== 0) {
       await db('game_mitigations')
         .where({ id: game.mitigations.id })
-        .update(location !== 'party'
-          ? { [`${mitigationId}_${location}`]: true }
-          : { [`${mitigationId}_local`]: true, [`${mitigationId}hq`]: true });
+        .update(gameMitigations);
     }
     // SET SYSTEMS
-    if (systemsToRestore.length) {
+    const gameSystems = responses.reduce((acc, { systems_to_restore: systemsToRestore }) => {
+      if (systemsToRestore.length) {
+        return {
+          ...acc,
+          ...(systemsToRestore.reduce((systemsFromResponse, systemKey) => ({
+            ...systemsFromResponse,
+            [systemKey]: true,
+          }), {})),
+        };
+      }
+      return acc;
+    }, {});
+    if (Object.keys(gameSystems).length !== 0) {
       await db('game_systems')
         .where({ id: game.systems_id })
-        .update(systemsToRestore.reduce((acc, systemKey) => ({
-          ...acc,
-          [systemKey]: true,
-        }), {}));
+        .update(gameSystems);
+    }
+    // SET GAME INJECTION
+    if (injectionId) {
+      const injectionsToPrevent = await db('injection_response')
+        .select('injection_to_prevent')
+        .where('injection_id', injectionId)
+        .whereIn('response_id', responseIds);
+      if (injectionsToPrevent.length) {
+        await db('game')
+          .where({ id: gameId })
+          .update({
+            prevented_injections: [
+              ...game.prevented_injections,
+              ...injectionsToPrevent.map(({
+                injection_to_prevent: injectionToPrevent,
+              }) => injectionToPrevent),
+            ],
+          });
+      }
+      await db('game_injection')
+        .where({
+          game_id: gameId,
+          injection_id: injectionId,
+        })
+        .update({
+          delivered: true,
+          responses_made: responseIds,
+        });
     }
   } catch (error) {
-    // TODO: change messages when this function is used with injection responses
-    logger.error('RESTORESYSTEM ERROR: %s', error);
+    logger.error('makeResponses ERROR: %s', error);
     if (error.message === 'Not enough budget' || error.message === 'Response not allowed') {
       throw error;
     }
-    throw new Error('Server error on system restore');
+    throw new Error('Server error on making respone');
   }
   return getGame(gameId);
 };
@@ -315,12 +367,51 @@ const injectGames = async () => {
   );
 };
 
+const changeGameInjectionDeliverance = async ({
+  gameId, injectionId, delivered,
+}) => {
+  try {
+    await db('game_injection')
+      .where({
+        game_id: gameId,
+        injection_id: injectionId,
+      })
+      .update({ delivered });
+  } catch (error) {
+    logger.error('changeGameInjectionDeliverance ERROR: %s', error);
+    throw new Error('Server error on changing games injection deliverance');
+  }
+  return getGame(gameId);
+};
+
+const makeIncorrectInjectionResponse = async ({
+  gameId, injectionId,
+}) => {
+  try {
+    await db('game_injection')
+      .where({
+        game_id: gameId,
+        injection_id: injectionId,
+      })
+      .update({
+        delivered: true,
+        incorrect_response_made: true,
+      });
+  } catch (error) {
+    logger.error('makeIncorrectInjectionResponse ERROR: %s', error);
+    throw new Error('Server error on making incorrect injection response');
+  }
+  return getGame(gameId);
+};
+
 module.exports = {
   createGame,
   getGame,
   changeMitigation,
   startSimulation,
   pauseSimulation,
-  makeResponse,
+  makeResponses,
   injectGames,
+  changeGameInjectionDeliverance,
+  makeIncorrectInjectionResponse,
 };

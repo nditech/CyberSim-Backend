@@ -47,8 +47,8 @@ exports.up = async (knex) => {
 
   await knex.schema.createTable('injection', (tbl) => {
     tbl.string('id').primary().notNullable();
-    tbl.string('title'); // TODO: add notNullable
-    tbl.string('description'); // TODO: add notNullable
+    tbl.string('title').notNullable();
+    tbl.string('description').notNullable();
     tbl.integer('trigger_time').notNullable(); // in ms
     tbl.enu('location', ['hq', 'local']);
     tbl.enu('type', ['Table', 'Background', 'Board']).notNullable();
@@ -189,8 +189,9 @@ exports.up = async (knex) => {
     tbl.foreign('game_id').references('id').inTable('game');
     tbl.string('injection_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
-    tbl.integer('response_made').unsigned();
-    tbl.foreign('response_made').references('id').inTable('injection_response');
+    tbl.specificType('responses_made', 'text ARRAY');
+    tbl.boolean('delivered').notNullable().defaultTo(false);
+    tbl.boolean('incorrect_response_made').notNullable().defaultTo(false);
   });
 
   // ONE game to MANY game_log

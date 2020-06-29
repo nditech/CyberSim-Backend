@@ -17,18 +17,17 @@ const getResponseWithCost = (responseWithMitigationCosts) => {
   }
 };
 
-const getResponse = async (responseId) => {
-  const response = await db('response')
+const getResponsesById = async (responseIds) => {
+  const responses = await db('response')
     .select(
       'response.*',
       'mitigation.hq_cost as hqMitCost',
       'mitigation.local_cost as localMitCost',
     )
     .leftOuterJoin('mitigation', 'response.mitigation_id', 'mitigation.id')
-    .where({ 'response.id': responseId })
-    .first();
+    .whereIn('response.id', responseIds);
 
-  return getResponseWithCost(response);
+  return responses.map((response) => getResponseWithCost(response));
 };
 
 const getResponses = async () => {
@@ -44,5 +43,5 @@ const getResponses = async () => {
 
 module.exports = {
   getResponses,
-  getResponse,
+  getResponsesById,
 };

@@ -44,6 +44,7 @@ app.get('/systems', async (req, res) => {
 });
 
 app.get('/injections', async (req, res) => {
+  // TODO: join correct responses from injection_response
   const records = await db('injection');
   res.json(records);
 });
