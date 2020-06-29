@@ -6,6 +6,7 @@ const expressPino = require('express-pino-logger');
 const logger = require('./logger');
 const db = require('./models/db');
 const { getResponses } = require('./models/response');
+const { getInjections } = require('./models/injection');
 
 const app = express();
 
@@ -44,8 +45,7 @@ app.get('/systems', async (req, res) => {
 });
 
 app.get('/injections', async (req, res) => {
-  // TODO: join correct responses from injection_response
-  const records = await db('injection');
+  const records = await getInjections();
   res.json(records);
 });
 
