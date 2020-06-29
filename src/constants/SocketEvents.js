@@ -11,5 +11,5 @@ module.exports = {
   RESTORESYSTEM: 'restoreSystem',
   DELIVEREINJECTION: 'delivereInjection',
   RESPONDTOINJECTION: 'respondToInjection',
-  INCORRECTRESPONDTOINJECTION: 'incorrectRespondToInjection',
+  NONCORRECTRESPONDTOINJECTION: 'nonCorrectRespondToInjection',
 };

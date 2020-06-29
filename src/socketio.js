@@ -12,7 +12,7 @@ const {
   makeResponses,
   injectGames,
   changeGameInjectionDeliverance,
-  makeIncorrectInjectionResponse,
+  makeNonCorrectInjectionResponse,
 } = require('./models/game');
 
 module.exports = (http) => {
@@ -157,10 +157,10 @@ module.exports = (http) => {
       }
     });
 
-    socket.on(SocketEvents.INCORRECTRESPONDTOINJECTION, async ({ injectionId }, callback) => {
-      logger.info('INCORRECTRESPONDTOINJECTION: %s', JSON.stringify({ gameId, injectionId }));
+    socket.on(SocketEvents.NONCORRECTRESPONDTOINJECTION, async ({ injectionId }, callback) => {
+      logger.info('NONCORRECTRESPONDTOINJECTION: %s', JSON.stringify({ gameId, injectionId }));
       try {
-        const game = await makeIncorrectInjectionResponse({ gameId, injectionId });
+        const game = await makeNonCorrectInjectionResponse({ gameId, injectionId });
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
         callback({ game });
       } catch (error) {

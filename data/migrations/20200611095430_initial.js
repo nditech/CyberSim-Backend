@@ -189,9 +189,9 @@ exports.up = async (knex) => {
     tbl.foreign('game_id').references('id').inTable('game');
     tbl.string('injection_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
-    tbl.specificType('responses_made', 'text ARRAY');
+    tbl.specificType('correct_responses_made', 'text ARRAY');
     tbl.boolean('delivered').notNullable().defaultTo(false);
-    tbl.boolean('incorrect_response_made').notNullable().defaultTo(false);
+    tbl.boolean('response_made').notNullable().defaultTo(false);
   });
 
   // ONE game to MANY game_log

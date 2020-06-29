@@ -236,7 +236,8 @@ const makeResponses = async ({
         })
         .update({
           delivered: true,
-          responses_made: responseIds,
+          correct_responses_made: responseIds,
+          response_made: true,
         });
     }
   } catch (error) {
@@ -384,7 +385,7 @@ const changeGameInjectionDeliverance = async ({
   return getGame(gameId);
 };
 
-const makeIncorrectInjectionResponse = async ({
+const makeNonCorrectInjectionResponse = async ({
   gameId, injectionId,
 }) => {
   try {
@@ -395,11 +396,11 @@ const makeIncorrectInjectionResponse = async ({
       })
       .update({
         delivered: true,
-        incorrect_response_made: true,
+        response_made: true,
       });
   } catch (error) {
-    logger.error('makeIncorrectInjectionResponse ERROR: %s', error);
-    throw new Error('Server error on making incorrect injection response');
+    logger.error('makeNonCorrectInjectionResponse ERROR: %s', error);
+    throw new Error('Server error on making non correct injection response');
   }
   return getGame(gameId);
 };
@@ -413,5 +414,5 @@ module.exports = {
   makeResponses,
   injectGames,
   changeGameInjectionDeliverance,
-  makeIncorrectInjectionResponse,
+  makeNonCorrectInjectionResponse,
 };
