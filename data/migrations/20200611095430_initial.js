@@ -178,7 +178,7 @@ exports.up = async (knex) => {
     tbl.foreign('mitigations_id').references('id').inTable('game_mitigations');
     tbl.integer('systems_id').unsigned().notNullable();
     tbl.foreign('systems_id').references('id').inTable('game_systems');
-    tbl.specificType('prevented_injections', 'text ARRAY');
+    tbl.specificType('prevented_injections', 'text ARRAY').notNullable().defaultTo('{}');
     tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
   });
 

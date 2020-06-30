@@ -279,7 +279,7 @@ const injectGames = async () => {
     }
     return [];
   }
-  const injections = await db('injection');
+  const injections = await db('injection').orderBy('trigger_time');
   const currentTime = Date.now();
   return Promise.all(
     games.reduce((acc, game) => {
