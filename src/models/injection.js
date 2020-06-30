@@ -6,6 +6,7 @@ const getInjections = async () => {
       'injection.*',
       'r.responses',
     )
+    .orderBy('trigger_time')
     .joinRaw(`
     LEFT JOIN (
       SELECT ir.injection_id, array_agg(to_json(response)) AS responses
