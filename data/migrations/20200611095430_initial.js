@@ -92,6 +92,7 @@ exports.up = async (knex) => {
     tbl.specificType('required_systems', 'text ARRAY');
   });
 
+  // TODO: think about a ONE to MANY relation instead (one game many mitigations)
   // ONE game to ONE game_mitigations
   await knex.schema.createTable('game_mitigations', (tbl) => {
     tbl.increments('id');
@@ -145,6 +146,7 @@ exports.up = async (knex) => {
     tbl.boolean('M31_local').notNullable().defaultTo(false);
   });
 
+  // TODO: think about a ONE to MANY relation instead (one game many systems)
   // ONE game to ONE game_systems
   await knex.schema.createTable('game_systems', (tbl) => {
     tbl.increments('id');

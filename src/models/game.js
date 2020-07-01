@@ -137,7 +137,6 @@ const makeResponses = async ({
 }) => {
   try {
     const responses = await getResponsesById(responseIds);
-    console.log(responses);
     const game = await db('game')
       .select(
         'game.id',
@@ -145,9 +144,15 @@ const makeResponses = async ({
         'game.systems_id',
         'game.prevented_injections',
         db.raw('to_json(game_mitigations) as mitigations'),
+        'i.injected_ids',
       )
       .where({ 'game.id': gameId })
       .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
+      .joinRaw(`
+        LEFT JOIN (
+          SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id
+        ) i ON i.game_id = game.id
+      `)
       .first();
     // CHECK REQUIRED MITIGATION
     responses.forEach(({
@@ -195,7 +200,7 @@ const makeResponses = async ({
     }
     // SET SYSTEMS
     const gameSystems = responses.reduce((acc, { systems_to_restore: systemsToRestore }) => {
-      if (systemsToRestore.length) {
+      if (systemsToRestore && systemsToRestore.length) {
         return {
           ...acc,
           ...(systemsToRestore.reduce((systemsFromResponse, systemKey) => ({
@@ -213,20 +218,23 @@ const makeResponses = async ({
     }
     // SET GAME INJECTION
     if (injectionId) {
-      const injectionsToPrevent = await db('injection_response')
+      const injectionResponses = await db('injection_response')
         .select('injection_to_prevent')
         .where('injection_id', injectionId)
         .whereIn('response_id', responseIds);
-      if (injectionsToPrevent.length) {
+      const preventedInjections = [...injectionResponses.reduce(
+        (acc, { injection_to_prevent: injectionToPrevent }) => {
+          if (injectionToPrevent && !game.injected_ids.some((id) => id === injectionToPrevent)) {
+            acc.add(injectionToPrevent);
+          }
+          return acc;
+        }, new Set([...game.prevented_injections]),
+      )];
+      if (preventedInjections.length !== game.prevented_injections.length) {
         await db('game')
           .where({ id: gameId })
           .update({
-            prevented_injections: [
-              ...game.prevented_injections,
-              ...injectionsToPrevent.map(({
-                injection_to_prevent: injectionToPrevent,
-              }) => injectionToPrevent),
-            ],
+            prevented_injections: preventedInjections,
           });
       }
       await db('game_injection')
