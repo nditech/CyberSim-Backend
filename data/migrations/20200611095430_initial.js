@@ -1,14 +1,9 @@
-
 exports.up = async (knex) => {
   await knex.schema.createTable('system', (tbl) => {
     tbl.string('id').primary().notNullable();
     tbl.string('name').notNullable();
     tbl.string('description');
-    tbl.enu('type', [
-      'hq',
-      'party',
-      'local',
-    ]).notNullable();
+    tbl.enu('type', ['hq', 'party', 'local']).notNullable();
   });
 
   await knex.schema.createTable('mitigation', (tbl) => {
@@ -18,13 +13,15 @@ exports.up = async (knex) => {
     tbl.integer('local_cost');
     tbl.boolean('is_hq').notNullable();
     tbl.boolean('is_local').notNullable();
-    tbl.enu('category', [
-      'Operation',
-      'National party voter database',
-      'National party website',
-      'Accounts',
-      'Devices',
-    ]).notNullable();
+    tbl
+      .enu('category', [
+        'Operation',
+        'National party voter database',
+        'National party website',
+        'Accounts',
+        'Devices',
+      ])
+      .notNullable();
   });
 
   await knex.schema.createTable('response', (tbl) => {
@@ -35,10 +32,7 @@ exports.up = async (knex) => {
     // use mitigation costs of mitigation_id if no (no means null not 0) cost specified above
     tbl.enu('mitigation_type', ['hq', 'local', 'party']);
     tbl.string('mitigation_id');
-    tbl
-      .foreign('mitigation_id')
-      .references('id')
-      .inTable('mitigation');
+    tbl.foreign('mitigation_id').references('id').inTable('mitigation');
     // Restore system at game state on response made
     tbl.specificType('systems_to_restore', 'text ARRAY'); // Switch these systems to TRUE
     tbl.string('required_mitigation'); // ALLOW response if requirement met with given type below
@@ -81,10 +75,7 @@ exports.up = async (knex) => {
   await knex.schema.createTable('action', (tbl) => {
     tbl.string('id').primary().notNullable();
     tbl.string('description').notNullable();
-    tbl.enu('type', [
-      'hq',
-      'local',
-    ]).notNullable();
+    tbl.enu('type', ['hq', 'local']).notNullable();
     tbl.integer('cost').notNullable().defaultTo(0);
     tbl.integer('budget_increase').notNullable().defaultTo(0);
     tbl.decimal('poll_increase').notNullable().defaultTo(0);
@@ -166,11 +157,10 @@ exports.up = async (knex) => {
 
   await knex.schema.createTable('game', (tbl) => {
     tbl.string('id').primary().notNullable();
-    tbl.enu('state', [
-      'ASSESSMENT',
-      'PREPARATION',
-      'SIMULATION',
-    ]).notNullable().defaultTo('PREPARATION');
+    tbl
+      .enu('state', ['ASSESSMENT', 'PREPARATION', 'SIMULATION'])
+      .notNullable()
+      .defaultTo('PREPARATION');
     tbl.decimal('poll').notNullable().defaultTo(0); // TODO: use a real default
     tbl.integer('budget').notNullable().defaultTo(50000); // TODO: use a real default
     tbl.timestamp('started_at', { useTz: true });
@@ -180,7 +170,10 @@ exports.up = async (knex) => {
     tbl.foreign('mitigations_id').references('id').inTable('game_mitigations');
     tbl.integer('systems_id').unsigned().notNullable();
     tbl.foreign('systems_id').references('id').inTable('game_systems');
-    tbl.specificType('prevented_injections', 'text ARRAY').notNullable().defaultTo('{}');
+    tbl
+      .specificType('prevented_injections', 'text ARRAY')
+      .notNullable()
+      .defaultTo('{}');
     tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
   });
 
@@ -202,14 +195,16 @@ exports.up = async (knex) => {
     tbl.string('game_id').notNullable();
     tbl.foreign('game_id').references('id').inTable('game');
     // TODO:
-    tbl.enu('type', [
-      'injection happened', // game_injection id, why
-      'injection prevented', // injection id, why
-      'budget item purchased', // mitigation id
-      'system related action', // response id
-      'hq action', // action id
-      'local action', // action id
-    ]).notNullable();
+    tbl
+      .enu('type', [
+        'injection happened', // game_injection id, why
+        'injection prevented', // injection id, why
+        'budget item purchased', // mitigation id
+        'system related action', // response id
+        'hq action', // action id
+        'local action', // action id
+      ])
+      .notNullable();
   });
 };
 

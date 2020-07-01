@@ -2,12 +2,8 @@ const db = require('./db');
 
 const getInjections = async () => {
   const records = await db('injection')
-    .select(
-      'injection.*',
-      'r.responses',
-    )
-    .orderBy('trigger_time')
-    .joinRaw(`
+    .select('injection.*', 'r.responses')
+    .orderBy('trigger_time').joinRaw(`
     LEFT JOIN (
       SELECT ir.injection_id, array_agg(to_json(response)) AS responses
       FROM injection_response ir

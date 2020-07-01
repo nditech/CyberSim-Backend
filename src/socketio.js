@@ -74,22 +74,36 @@ module.exports = (http) => {
       }
     });
 
-    socket.on(SocketEvents.CHANGEMITIGATION, async ({
-      id: mitigationId, type: mitigationType, value: mitigationValue,
-    }, callback) => {
-      logger.info('CHANGEMITIGATION: %s', JSON.stringify({
-        mitigationId, mitigationType, mitigationValue, gameId,
-      }));
-      try {
-        const game = await changeMitigation({
-          mitigationId, mitigationType, mitigationValue, gameId, adjustBudget: true,
-        });
-        io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        callback({ game });
-      } catch (error) {
-        callback({ error: error.message });
-      }
-    });
+    socket.on(
+      SocketEvents.CHANGEMITIGATION,
+      async (
+        { id: mitigationId, type: mitigationType, value: mitigationValue },
+        callback,
+      ) => {
+        logger.info(
+          'CHANGEMITIGATION: %s',
+          JSON.stringify({
+            mitigationId,
+            mitigationType,
+            mitigationValue,
+            gameId,
+          }),
+        );
+        try {
+          const game = await changeMitigation({
+            mitigationId,
+            mitigationType,
+            mitigationValue,
+            gameId,
+            adjustBudget: true,
+          });
+          io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+          callback({ game });
+        } catch (error) {
+          callback({ error: error.message });
+        }
+      },
+    );
 
     socket.on(SocketEvents.STARTSIMULATION, async (callback) => {
       logger.info('STARTSIMULATION: %s', gameId);
@@ -135,38 +149,67 @@ module.exports = (http) => {
       }
     });
 
-    socket.on(SocketEvents.DELIVEREINJECTION, async ({ injectionId, delivered }, callback) => {
-      logger.info('DELIVEREINJECTION: %s', JSON.stringify({ gameId, injectionId, delivered }));
-      try {
-        const game = await changeGameInjectionDeliverance({ gameId, injectionId, delivered });
-        io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        callback({ game });
-      } catch (error) {
-        callback({ error: error.message });
-      }
-    });
+    socket.on(
+      SocketEvents.DELIVEREINJECTION,
+      async ({ injectionId, delivered }, callback) => {
+        logger.info(
+          'DELIVEREINJECTION: %s',
+          JSON.stringify({ gameId, injectionId, delivered }),
+        );
+        try {
+          const game = await changeGameInjectionDeliverance({
+            gameId,
+            injectionId,
+            delivered,
+          });
+          io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+          callback({ game });
+        } catch (error) {
+          callback({ error: error.message });
+        }
+      },
+    );
 
-    socket.on(SocketEvents.RESPONDTOINJECTION, async ({ injectionId, responseIds }, callback) => {
-      logger.info('RESPONDTOINJECTION: %s', JSON.stringify({ gameId, injectionId, responseIds }));
-      try {
-        const game = await makeResponses({ gameId, injectionId, responseIds });
-        io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        callback({ game });
-      } catch (error) {
-        callback({ error: error.message });
-      }
-    });
+    socket.on(
+      SocketEvents.RESPONDTOINJECTION,
+      async ({ injectionId, responseIds }, callback) => {
+        logger.info(
+          'RESPONDTOINJECTION: %s',
+          JSON.stringify({ gameId, injectionId, responseIds }),
+        );
+        try {
+          const game = await makeResponses({
+            gameId,
+            injectionId,
+            responseIds,
+          });
+          io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+          callback({ game });
+        } catch (error) {
+          callback({ error: error.message });
+        }
+      },
+    );
 
-    socket.on(SocketEvents.NONCORRECTRESPONDTOINJECTION, async ({ injectionId }, callback) => {
-      logger.info('NONCORRECTRESPONDTOINJECTION: %s', JSON.stringify({ gameId, injectionId }));
-      try {
-        const game = await makeNonCorrectInjectionResponse({ gameId, injectionId });
-        io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
-        callback({ game });
-      } catch (error) {
-        callback({ error: error.message });
-      }
-    });
+    socket.on(
+      SocketEvents.NONCORRECTRESPONDTOINJECTION,
+      async ({ injectionId }, callback) => {
+        logger.info(
+          'NONCORRECTRESPONDTOINJECTION: %s',
+          JSON.stringify({ gameId, injectionId }),
+        );
+        try {
+          const game = await makeNonCorrectInjectionResponse({
+            gameId,
+            injectionId,
+          });
+          io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+          callback({ game });
+        } catch (error) {
+          callback({ error: error.message });
+        }
+      },
+    );
   });
 
   return io;
