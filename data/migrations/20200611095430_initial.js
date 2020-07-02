@@ -83,98 +83,43 @@ exports.up = async (knex) => {
     tbl.specificType('required_systems', 'text ARRAY');
   });
 
-  // TODO: think about a ONE to MANY relation instead (one game many mitigations)
-  // ONE game to ONE game_mitigations
-  await knex.schema.createTable('game_mitigations', (tbl) => {
-    tbl.increments('id');
-    tbl.boolean('M1_hq').notNullable().defaultTo(false);
-    tbl.boolean('M2_hq').notNullable().defaultTo(false);
-    tbl.boolean('M3_hq').notNullable().defaultTo(false);
-    tbl.boolean('M4_hq').notNullable().defaultTo(false);
-    tbl.boolean('M5_hq').notNullable().defaultTo(false);
-    tbl.boolean('M6_hq').notNullable().defaultTo(false);
-    tbl.boolean('M7_hq').notNullable().defaultTo(false);
-    tbl.boolean('M8_hq').notNullable().defaultTo(false);
-    tbl.boolean('M9_hq').notNullable().defaultTo(false);
-    tbl.boolean('M10_hq').notNullable().defaultTo(false);
-    tbl.boolean('M11_hq').notNullable().defaultTo(false);
-    tbl.boolean('M12_hq').notNullable().defaultTo(false);
-    tbl.boolean('M13_hq').notNullable().defaultTo(false);
-    tbl.boolean('M14_hq').notNullable().defaultTo(false);
-    tbl.boolean('M15_hq').notNullable().defaultTo(false);
-    tbl.boolean('M16_hq').notNullable().defaultTo(false);
-    tbl.boolean('M17_hq').notNullable().defaultTo(false);
-    tbl.boolean('M18_hq').notNullable().defaultTo(false);
-    tbl.boolean('M19_hq').notNullable().defaultTo(false);
-    tbl.boolean('M20_hq').notNullable().defaultTo(false);
-    tbl.boolean('M21_hq').notNullable().defaultTo(false);
-    tbl.boolean('M22_hq').notNullable().defaultTo(false);
-    tbl.boolean('M23_hq').notNullable().defaultTo(false);
-    tbl.boolean('M24_hq').notNullable().defaultTo(false);
-    tbl.boolean('M25_hq').notNullable().defaultTo(false);
-    tbl.boolean('M26_hq').notNullable().defaultTo(false);
-    tbl.boolean('M27_hq').notNullable().defaultTo(false);
-    tbl.boolean('M28_hq').notNullable().defaultTo(false);
-    tbl.boolean('M29_hq').notNullable().defaultTo(false);
-    tbl.boolean('M30_hq').notNullable().defaultTo(false);
-    tbl.boolean('M31_hq').notNullable().defaultTo(false);
-    tbl.boolean('M1_local').notNullable().defaultTo(false);
-    tbl.boolean('M2_local').notNullable().defaultTo(false);
-    tbl.boolean('M3_local').notNullable().defaultTo(false);
-    tbl.boolean('M11_local').notNullable().defaultTo(false);
-    tbl.boolean('M12_local').notNullable().defaultTo(false);
-    tbl.boolean('M13_local').notNullable().defaultTo(false);
-    tbl.boolean('M19_local').notNullable().defaultTo(false);
-    tbl.boolean('M20_local').notNullable().defaultTo(false);
-    tbl.boolean('M23_local').notNullable().defaultTo(false);
-    tbl.boolean('M24_local').notNullable().defaultTo(false);
-    tbl.boolean('M25_local').notNullable().defaultTo(false);
-    tbl.boolean('M26_local').notNullable().defaultTo(false);
-    tbl.boolean('M27_local').notNullable().defaultTo(false);
-    tbl.boolean('M28_local').notNullable().defaultTo(false);
-    tbl.boolean('M29_local').notNullable().defaultTo(false);
-    tbl.boolean('M30_local').notNullable().defaultTo(false);
-    tbl.boolean('M31_local').notNullable().defaultTo(false);
-  });
-
-  // TODO: think about a ONE to MANY relation instead (one game many systems)
-  // ONE game to ONE game_systems
-  await knex.schema.createTable('game_systems', (tbl) => {
-    tbl.increments('id');
-    tbl.boolean('S1').notNullable().defaultTo(true);
-    tbl.boolean('S2').notNullable().defaultTo(true);
-    tbl.boolean('S3').notNullable().defaultTo(true);
-    tbl.boolean('S4').notNullable().defaultTo(false); // TODO: switch back to true
-    tbl.boolean('S5').notNullable().defaultTo(false); // TODO: switch back to true
-    tbl.boolean('S6').notNullable().defaultTo(false); // TODO: switch back to true
-    tbl.boolean('S7').notNullable().defaultTo(false); // TODO: switch back to true
-    tbl.boolean('S8').notNullable().defaultTo(true);
-    tbl.boolean('S9').notNullable().defaultTo(true);
-    tbl.boolean('S10').notNullable().defaultTo(true);
-    tbl.boolean('S11').notNullable().defaultTo(true);
-    tbl.boolean('S12').notNullable().defaultTo(true);
-  });
-
   await knex.schema.createTable('game', (tbl) => {
     tbl.string('id').primary().notNullable();
     tbl
       .enu('state', ['ASSESSMENT', 'PREPARATION', 'SIMULATION'])
       .notNullable()
       .defaultTo('PREPARATION');
-    tbl.decimal('poll').notNullable().defaultTo(0); // TODO: use a real default
+    tbl.decimal('poll').notNullable().defaultTo(40);
     tbl.integer('budget').notNullable().defaultTo(50000); // TODO: use a real default
     tbl.timestamp('started_at', { useTz: true });
     tbl.boolean('paused').notNullable().defaultTo(true);
     tbl.integer('millis_taken_before_started').notNullable().defaultTo(0);
-    tbl.integer('mitigations_id').unsigned().notNullable();
-    tbl.foreign('mitigations_id').references('id').inTable('game_mitigations');
-    tbl.integer('systems_id').unsigned().notNullable();
-    tbl.foreign('systems_id').references('id').inTable('game_systems');
     tbl
       .specificType('prevented_injections', 'text ARRAY')
       .notNullable()
       .defaultTo('{}');
     tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
+  });
+
+  // ONE game to MANY game_mitigation
+  await knex.schema.createTable('game_mitigation', (tbl) => {
+    tbl.increments('id').primary().notNullable();
+    tbl.string('game_id').notNullable();
+    tbl.foreign('game_id').references('id').inTable('game');
+    tbl.string('mitigation_id').notNullable();
+    tbl.foreign('mitigation_id').references('id').inTable('mitigation');
+    tbl.enu('location', ['hq', 'local']).notNullable();
+    tbl.boolean('state').notNullable().defaultTo(false);
+  });
+
+  // ONE game to MANY game_system
+  await knex.schema.createTable('game_system', (tbl) => {
+    tbl.increments('id').primary().notNullable();
+    tbl.string('game_id').notNullable();
+    tbl.foreign('game_id').references('id').inTable('game');
+    tbl.string('system_id').notNullable();
+    tbl.foreign('system_id').references('id').inTable('system');
+    tbl.boolean('state').notNullable().defaultTo(true);
   });
 
   // ONE game to MANY game_injection
@@ -211,10 +156,10 @@ exports.up = async (knex) => {
 exports.down = async (knex) => {
   // dynamic
   await knex.schema.dropTableIfExists('game_injection');
+  await knex.schema.dropTableIfExists('game_system');
+  await knex.schema.dropTableIfExists('game_mitigation');
   await knex.schema.dropTableIfExists('game_log');
   await knex.schema.dropTableIfExists('game');
-  await knex.schema.dropTableIfExists('game_systems');
-  await knex.schema.dropTableIfExists('game_mitigations');
   // static
   await knex.schema.dropTableIfExists('system');
   await knex.schema.dropTableIfExists('injection_response');

@@ -16,42 +16,65 @@ const getGame = (id) =>
       'game.millis_taken_before_started',
       'game.prevented_injections',
       'game.every_injection_checked',
-      db.raw('to_json(game_mitigations) as mitigations'),
-      db.raw('to_json(game_systems) as systems'),
       'i.injections',
+      'm.mitigations',
+      's.systems',
       'l.logs',
     )
     .where({ 'game.id': id })
-    .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
-    .join('game_systems', 'game.systems_id', 'game_systems.id')
     .joinRaw(
-      `
-    LEFT JOIN (
-      SELECT gi.game_id, array_agg(to_json(gi)) AS injections FROM game_injection gi GROUP BY gi.game_id
-    ) i ON i.game_id = game.id
-  `,
+      `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
     )
     .joinRaw(
-      `
-    LEFT JOIN (
-      SELECT gl.game_id, array_agg(to_json(gl)) AS logs FROM game_log gl GROUP BY gl.game_id
-    ) l ON l.game_id = game.id
-  `,
+      `LEFT JOIN (SELECT gs.game_id, array_agg(to_json(gs)) AS systems FROM game_system gs GROUP BY gs.game_id) s ON s.game_id = game.id`,
+    )
+    .joinRaw(
+      `LEFT JOIN (SELECT gi.game_id, array_agg(to_json(gi)) AS injections FROM game_injection gi GROUP BY gi.game_id) i ON i.game_id = game.id`,
+    )
+    .joinRaw(
+      `LEFT JOIN (SELECT gl.game_id, array_agg(to_json(gl)) AS logs FROM game_log gl GROUP BY gl.game_id) l ON l.game_id = game.id`,
     )
     .first();
 
 const createGame = async (id) => {
-  const [{ id: mitigationsId }] = await db('game_mitigations').insert({}, [
-    'id',
-  ]);
-  const [{ id: systemsId }] = await db('game_systems').insert({}, ['id']);
   await db('game').insert(
     {
       id,
-      mitigations_id: mitigationsId,
-      systems_id: systemsId,
     },
     ['id'],
+  );
+  const systems = await db('system');
+  await db('game_system').insert(
+    systems.map(({ id: systemId }) => ({
+      game_id: id,
+      system_id: systemId,
+      state: true,
+    })),
+  );
+  const mitigations = await db('mitigation');
+  await db('game_mitigation').insert(
+    mitigations.reduce(
+      (acc, { id: mitigationId, is_hq: isHq, is_local: isLocal }) => {
+        if (isHq) {
+          acc.push({
+            game_id: id,
+            mitigation_id: mitigationId,
+            location: 'hq',
+            state: false,
+          });
+        }
+        if (isLocal) {
+          acc.push({
+            game_id: id,
+            mitigation_id: mitigationId,
+            location: 'local',
+            state: false,
+          });
+        }
+        return acc;
+      },
+      [],
+    ),
   );
   return getGame(id);
 };
@@ -64,22 +87,26 @@ const changeMitigation = async ({
   adjustBudget,
 }) => {
   try {
-    const gameMitigationId = `${mitigationId}_${mitigationType}`;
-    const {
-      mitigations_id: gameMitigationsId,
-      gameMitigationIdValue,
-      budget,
-    } = await db('game')
-      .select(
-        'game.mitigations_id',
-        `game_mitigations.${gameMitigationId} as gameMitigationIdValue`,
-        'game.budget',
-      )
+    const { budget } = await db('game')
+      .select('game.budget')
       .where({ 'game.id': gameId })
-      .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
       .first();
 
-    if (gameMitigationIdValue !== mitigationValue) {
+    const { gameMitigationValue, gameMitigationId } = await db(
+      'game_mitigation',
+    )
+      .select(
+        'game_mitigation.state as gameMitigationValue',
+        'game_mitigation.id as gameMitigationId',
+      )
+      .where({
+        game_id: gameId,
+        mitigation_id: mitigationId,
+        location: mitigationType,
+      })
+      .first();
+
+    if (gameMitigationValue !== mitigationValue) {
       if (adjustBudget) {
         const [{ cost }] = await db('mitigation')
           .select(`${mitigationType}_cost as cost`)
@@ -95,9 +122,9 @@ const changeMitigation = async ({
             });
         }
       }
-      await db('game_mitigations')
-        .where({ id: gameMitigationsId })
-        .update({ [gameMitigationId]: mitigationValue });
+      await db('game_mitigation')
+        .where({ id: gameMitigationId })
+        .update({ state: mitigationValue });
     }
   } catch (error) {
     logger.error('changeMitigation ERROR: %s', error);
@@ -164,21 +191,25 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
       .select(
         'game.id',
         'game.budget',
-        'game.systems_id',
         'game.prevented_injections',
-        db.raw('to_json(game_mitigations) as mitigations'),
         'i.injected_ids',
+        'm.mitigations',
       )
       .where({ 'game.id': gameId })
-      .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
       .joinRaw(
-        `
-        LEFT JOIN (
-          SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id
-        ) i ON i.game_id = game.id
-      `,
+        `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
+      )
+      .joinRaw(
+        `LEFT JOIN (SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id) i ON i.game_id = game.id`,
       )
       .first();
+    const gameMitigations = game.mitigations.reduce(
+      (mitigationsAcc, { mitigation_id: mitigationId, location, state }) => ({
+        ...mitigationsAcc,
+        [`${mitigationId}_${location}`]: state,
+      }),
+      {},
+    );
     // CHECK REQUIRED MITIGATION
     responses.forEach(
       ({
@@ -189,9 +220,9 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
           requiredMitigationType &&
           requiredMitigation &&
           !(requiredMitigationType === 'party'
-            ? game.mitigations[`${requiredMitigation}_hq`] &&
-              game.mitigations[`${requiredMitigation}_local`]
-            : game.mitigations[
+            ? gameMitigations[`${requiredMitigation}_hq`] &&
+              gameMitigations[`${requiredMitigation}_local`]
+            : gameMitigations[
                 `${requiredMitigation}_${requiredMitigationType}`
               ])
         ) {
@@ -214,54 +245,35 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         .update({ budget: game.budget - cost });
     }
     // SET MITIGATIONS
-    const gameMitigations = responses.reduce(
-      (
-        acc,
-        { mitigation_type: mitigationType, mitigation_id: mitigationId },
-      ) => {
-        if (mitigationId && mitigationType) {
-          return {
-            ...acc,
-            ...(mitigationType !== 'party'
-              ? { [`${mitigationId}_${mitigationType}`]: true }
-              : {
-                  [`${mitigationId}_local`]: true,
-                  [`${mitigationId}_hq`]: true,
-                }),
-          };
-        }
-        return acc;
-      },
-      {},
+    await Promise.all(
+      responses.map(
+        ({ mitigation_type: mitigationType, mitigation_id: mitigationId }) =>
+          db('game_mitigation')
+            .where({
+              game_id: gameId,
+              mitigation_id: mitigationId,
+              ...(mitigationType !== 'party'
+                ? { location: mitigationType }
+                : {}),
+            })
+            .update({ state: true }),
+      ),
     );
-    if (Object.keys(gameMitigations).length !== 0) {
-      await db('game_mitigations')
-        .where({ id: game.mitigations.id })
-        .update(gameMitigations);
-    }
     // SET SYSTEMS
-    const gameSystems = responses.reduce(
+    const systemIdsToRestore = responses.reduce(
       (acc, { systems_to_restore: systemsToRestore }) => {
         if (systemsToRestore && systemsToRestore.length) {
-          return {
-            ...acc,
-            ...systemsToRestore.reduce(
-              (systemsFromResponse, systemKey) => ({
-                ...systemsFromResponse,
-                [systemKey]: true,
-              }),
-              {},
-            ),
-          };
+          return [...acc, ...systemsToRestore];
         }
         return acc;
       },
-      {},
+      [],
     );
-    if (Object.keys(gameSystems).length !== 0) {
-      await db('game_systems')
-        .where({ id: game.systems_id })
-        .update(gameSystems);
+    if (systemIdsToRestore.length !== 0) {
+      await db('game_system')
+        .where({ game_id: gameId })
+        .whereIn('system_id', systemIdsToRestore)
+        .update({ state: true });
     }
     // SET GAME INJECTION
     if (injectionId) {
@@ -324,21 +336,20 @@ const injectGames = async () => {
       'game.millis_taken_before_started',
       'game.prevented_injections',
       'game.poll',
-      'game.systems_id',
       'i.injected_ids',
-      db.raw('to_json(game_mitigations) as mitigations'),
+      'm.mitigations',
     )
     .where({
       'game.paused': false,
       'game.state': 'SIMULATION',
       'game.every_injection_checked': false,
     })
-    .join('game_mitigations', 'game.mitigations_id', 'game_mitigations.id')
-    .joinRaw(`
-      LEFT JOIN (
-        SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id
-      ) i ON i.game_id = game.id
-    `);
+    .joinRaw(
+      `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
+    )
+    .joinRaw(
+      `LEFT JOIN (SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id) i ON i.game_id = game.id`,
+    );
   if (games.length === 0) {
     if (!startingGame) {
       hasGamesToInject = false;
@@ -356,6 +367,16 @@ const injectGames = async () => {
           game.millis_taken_before_started;
         const injectionsToSkip = [];
         const injectionsToInject = [];
+        const gameMitigations = game.mitigations.reduce(
+          (
+            mitigationsAcc,
+            { mitigation_id: mitigationId, location, state },
+          ) => ({
+            ...mitigationsAcc,
+            [`${mitigationId}_${location}`]: state,
+          }),
+          {},
+        );
         injections.some((injection) => {
           const isFuture = injection.trigger_time > timeTaken;
           // stop iteration
@@ -378,7 +399,7 @@ const injectGames = async () => {
           if (
             injection.skipper_mitigation &&
             injection.skipper_mitigation_type &&
-            game.mitigations[
+            gameMitigations[
               `${injection.skipper_mitigation}_${injection.skipper_mitigation_type}`
             ]
           ) {
@@ -415,14 +436,10 @@ const injectGames = async () => {
         );
         // 2. Change systems to down
         if (systemsToDisable.length) {
-          await db('game_systems')
-            .where({ id: game.systems_id })
-            .update(
-              systemsToDisable.reduce(
-                (acc, system) => ({ ...acc, [system]: false }),
-                {},
-              ),
-            );
+          await db('game_system')
+            .where({ game_id: game.id })
+            .whereIn('system_id', systemsToDisable)
+            .update({ state: false });
         }
         // 3. Change poll, save prevented injections, update every_injection_checked
         const everyInjectionChecked =

@@ -1,4 +1,3 @@
-// STATIC CONTENT
 exports.seed = (knex) =>
   knex('system')
     .del()
