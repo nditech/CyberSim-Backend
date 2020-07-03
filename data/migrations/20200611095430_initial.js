@@ -99,6 +99,10 @@ exports.up = async (knex) => {
       .notNullable()
       .defaultTo('{}');
     tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
+    tbl
+      .specificType('preparation_mitigations', 'text ARRAY')
+      .notNullable()
+      .defaultTo('{}');
   });
 
   // ONE game to MANY game_mitigation
@@ -131,36 +135,43 @@ exports.up = async (knex) => {
     tbl.foreign('injection_id').references('id').inTable('injection');
     tbl.specificType('correct_responses_made', 'text ARRAY');
     tbl.boolean('delivered').notNullable().defaultTo(false);
-    tbl.boolean('response_made').notNullable().defaultTo(false);
+    tbl.integer('response_made_at').notNullable().defaultTo(0); // game timer
   });
 
   // ONE game to MANY game_log
+  // create logs based on these items, game_injection(.response_made_at), game.prevented_injections, game.preparation_mitigations,
   await knex.schema.createTable('game_log', (tbl) => {
     tbl.increments('id');
     tbl.string('game_id').notNullable();
     tbl.foreign('game_id').references('id').inTable('game');
-    // TODO:
+    tbl.integer('game_timer').notNullable().defaultTo(0);
     tbl
       .enu('type', [
-        'injection happened', // game_injection id, why
-        'injection prevented', // injection id, why
-        'budget item purchased', // mitigation id
-        'system related action', // response id
-        'hq action', // action id
-        'local action', // action id
+        'Budget Item Purchase',
+        'System Restore Action',
+        'Campaign Action', // TODO:
+        'Game State Changed',
       ])
       .notNullable();
+    tbl.string('descripition');
+    tbl.string('mitigation_type'); // Budget Item Purchase
+    tbl.string('mitigation_id'); // Budget Item Purchase
+    tbl.foreign('mitigation_id').references('id').inTable('mitigation');
+    tbl.string('response_id'); // System Restore Action
+    tbl.foreign('response_id').references('id').inTable('response');
+    tbl.string('action_id'); // Action
+    tbl.foreign('action_id').references('id').inTable('action');
   });
 };
 
 exports.down = async (knex) => {
-  // dynamic
+  // dynamic games
   await knex.schema.dropTableIfExists('game_injection');
   await knex.schema.dropTableIfExists('game_system');
   await knex.schema.dropTableIfExists('game_mitigation');
   await knex.schema.dropTableIfExists('game_log');
   await knex.schema.dropTableIfExists('game');
-  // static
+  // static data
   await knex.schema.dropTableIfExists('system');
   await knex.schema.dropTableIfExists('injection_response');
   await knex.schema.dropTableIfExists('response');

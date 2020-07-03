@@ -1,6 +1,8 @@
 const db = require('./db');
 const { getResponsesById } = require('./response');
 const logger = require('../logger');
+const GameStates = require('../constants/GameStates');
+const { getTimeTaken } = require('../util');
 
 // TODO: write tests for these functions
 
@@ -84,11 +86,16 @@ const changeMitigation = async ({
   mitigationType,
   mitigationValue,
   gameId,
-  adjustBudget,
 }) => {
   try {
-    const { budget } = await db('game')
-      .select('game.budget')
+    const game = await db('game')
+      .select(
+        'budget',
+        'state',
+        'started_at',
+        'paused',
+        'millis_taken_before_started',
+      )
       .where({ 'game.id': gameId })
       .first();
 
@@ -107,24 +114,31 @@ const changeMitigation = async ({
       .first();
 
     if (gameMitigationValue !== mitigationValue) {
-      if (adjustBudget) {
-        const [{ cost }] = await db('mitigation')
-          .select(`${mitigationType}_cost as cost`)
-          .where({ id: mitigationId });
-        if (cost) {
-          if (mitigationValue && budget < cost) {
-            throw new Error('Not enough budget');
-          }
-          await db('game')
-            .where({ id: gameId })
-            .update({
-              budget: mitigationValue ? budget - cost : budget + cost,
-            });
+      const [{ cost }] = await db('mitigation')
+        .select(`${mitigationType}_cost as cost`)
+        .where({ id: mitigationId });
+      if (cost) {
+        if (mitigationValue && game.budget < cost) {
+          throw new Error('Not enough budget');
         }
+        await db('game')
+          .where({ id: gameId })
+          .update({
+            budget: mitigationValue ? game.budget - cost : game.budget + cost,
+          });
       }
       await db('game_mitigation')
         .where({ id: gameMitigationId })
         .update({ state: mitigationValue });
+      if (game.state !== GameStates.PREPARATION) {
+        await db('game_log').insert({
+          game_id: gameId,
+          game_timer: getTimeTaken(game),
+          type: 'Budget Item Purchase',
+          mitigation_id: mitigationId,
+          mitigation_type: mitigationType,
+        });
+      }
     }
   } catch (error) {
     logger.error('changeMitigation ERROR: %s', error);
@@ -141,15 +155,50 @@ let startingGame = false;
 const startSimulation = async (gameId) => {
   try {
     startingGame = true;
-    await db('game')
-      .where({ id: gameId, state: 'PREPARATION' })
-      .orWhere({ id: gameId, state: 'SIMULATION' })
-      .update({ state: 'SIMULATION', started_at: db.fn.now(), paused: false });
-    hasGamesToInject = true;
-    startingGame = false;
+    const {
+      state,
+      millis_taken_before_started: millisTakenBeforeStarted,
+    } = await db('game')
+      .select('state', 'millis_taken_before_started')
+      .where({ id: gameId })
+      .first();
+    if (state === GameStates.ASSESSMENT) {
+      throw new Error('Cannot start finalized game');
+    }
+    const updateData = {
+      started_at: db.fn.now(),
+      paused: false,
+    };
+    if (state === GameStates.PREPARATION) {
+      const gameMitigations = await db('game_mitigation')
+        .select('mitigation_id', 'location', 'state')
+        .where({ game_id: gameId });
+      updateData.state = GameStates.SIMULATION;
+      updateData.preparation_mitigations = gameMitigations.reduce(
+        (acc, gm) =>
+          gm.state ? [...acc, `${gm.mitigation_id}_${gm.location}`] : acc,
+        [],
+      );
+    }
+    await db('game').where({ id: gameId }).update(updateData);
+    await db('game_log').insert({
+      game_id: gameId,
+      game_timer: millisTakenBeforeStarted,
+      type: 'Game State Changed',
+      descripition:
+        state === GameStates.PREPARATION
+          ? 'Simulation Started'
+          : 'Timer Started',
+    });
   } catch (error) {
+    if (error.message === 'Cannot start finalized game') {
+      throw error;
+    }
     logger.error('startSimulation ERROR: %s', error);
     throw new Error('Server error on start simulation');
+  } finally {
+    hasGamesToInject = true;
+    startingGame = false;
   }
   return getGame(gameId);
 };
@@ -161,17 +210,23 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
       started_at: startedAt,
     } = await db('game')
       .select('millis_taken_before_started', 'started_at')
-      .where({ id: gameId, state: 'SIMULATION' })
+      .where({ id: gameId, state: GameStates.SIMULATION })
       .first();
+    const newMillisTakenBeforeStarted =
+      millisTakenBeforeStarted + (Date.now() - new Date(startedAt).getTime());
     await db('game')
-      .where({ id: gameId, state: 'SIMULATION' })
+      .where({ id: gameId, state: GameStates.SIMULATION })
       .update({
-        millis_taken_before_started:
-          millisTakenBeforeStarted +
-          (Date.now() - new Date(startedAt).getTime()),
+        millis_taken_before_started: newMillisTakenBeforeStarted,
         paused: true,
-        ...(finishSimulation ? { state: 'ASSESSMENT' } : {}),
+        ...(finishSimulation ? { state: GameStates.ASSESSMENT } : {}),
       });
+    await db('game_log').insert({
+      game_id: gameId,
+      game_timer: newMillisTakenBeforeStarted,
+      type: 'Game State Changed',
+      descripition: finishSimulation ? 'Game Finalized' : 'Timer Stopped',
+    });
   } catch (error) {
     if (finishSimulation) {
       logger.error('finishSimulation ERROR: %s', error);
@@ -192,6 +247,9 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         'game.id',
         'game.budget',
         'game.prevented_injections',
+        'game.started_at',
+        'game.paused',
+        'game.millis_taken_before_started',
         'i.injected_ids',
         'm.mitigations',
       )
@@ -275,6 +333,7 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         .whereIn('system_id', systemIdsToRestore)
         .update({ state: true });
     }
+    const timeTaken = getTimeTaken(game);
     // SET GAME INJECTION
     if (injectionId) {
       const injectionResponses = await db('injection_response')
@@ -308,8 +367,15 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         .update({
           delivered: true,
           correct_responses_made: responseIds,
-          response_made: true,
+          response_made_at: timeTaken,
         });
+    } else {
+      await db('game_log').insert({
+        game_id: gameId,
+        game_timer: timeTaken,
+        type: 'System Restore Action',
+        response_id: responseIds[0],
+      });
     }
   } catch (error) {
     logger.error('makeResponses ERROR: %s', error);
@@ -341,7 +407,7 @@ const injectGames = async () => {
     )
     .where({
       'game.paused': false,
-      'game.state': 'SIMULATION',
+      'game.state': GameStates.SIMULATION,
       'game.every_injection_checked': false,
     })
     .joinRaw(
@@ -361,10 +427,7 @@ const injectGames = async () => {
   return Promise.all(
     games
       .reduce((acc, game) => {
-        const timeTaken =
-          currentTime -
-          new Date(game.started_at).getTime() +
-          game.millis_taken_before_started;
+        const timeTaken = getTimeTaken(game, currentTime);
         const injectionsToSkip = [];
         const injectionsToInject = [];
         const gameMitigations = game.mitigations.reduce(
@@ -503,6 +566,15 @@ const changeGameInjectionDeliverance = async ({
 
 const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
   try {
+    const game = await db('game')
+      .select(
+        'game.started_at',
+        'game.paused',
+        'game.millis_taken_before_started',
+      )
+      .where({ 'game.id': gameId })
+      .first();
+    const timeTaken = getTimeTaken(game);
     await db('game_injection')
       .where({
         game_id: gameId,
@@ -510,7 +582,7 @@ const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
       })
       .update({
         delivered: true,
-        response_made: true,
+        response_made_at: timeTaken,
       });
   } catch (error) {
     logger.error('makeNonCorrectInjectionResponse ERROR: %s', error);

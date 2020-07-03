@@ -95,7 +95,6 @@ module.exports = (http) => {
             mitigationType,
             mitigationValue,
             gameId,
-            adjustBudget: true,
           });
           io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
           callback({ game });
