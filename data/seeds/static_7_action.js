@@ -10,7 +10,6 @@ exports.seed = (knex) =>
           cost: 1000,
           budget_increase: 0,
           poll_increase: 5,
-          authorized_roles: ['R1'],
           required_systems: ['S4', 'S5', 'S9', 'S6', 'S10', 'S1', 'S2'],
         },
         {
@@ -20,7 +19,6 @@ exports.seed = (knex) =>
           cost: 800,
           budget_increase: 0,
           poll_increase: 4,
-          authorized_roles: ['R7'],
           required_systems: ['S8', 'S9', 'S7', 'S10'],
         },
         {
@@ -30,7 +28,6 @@ exports.seed = (knex) =>
           cost: 600,
           budget_increase: 0,
           poll_increase: 3,
-          authorized_roles: ['R5'],
           required_systems: ['S4', 'S5', 'S6'],
         },
         {
@@ -40,7 +37,6 @@ exports.seed = (knex) =>
           cost: 600,
           budget_increase: 0,
           poll_increase: 3,
-          authorized_roles: ['R9'],
           required_systems: ['S8', 'S9', 'S10'],
         },
         {
@@ -50,7 +46,6 @@ exports.seed = (knex) =>
           cost: 500,
           budget_increase: 0,
           poll_increase: 2,
-          authorized_roles: ['R2', 'R4'],
           required_systems: ['S5'],
         },
         {
@@ -60,7 +55,6 @@ exports.seed = (knex) =>
           cost: 500,
           budget_increase: 0,
           poll_increase: 2,
-          authorized_roles: ['R8'],
           required_systems: ['S9'],
         },
         {
@@ -70,7 +64,6 @@ exports.seed = (knex) =>
           cost: 500,
           budget_increase: 0,
           poll_increase: 2,
-          authorized_roles: ['R3'],
           required_systems: ['S1', 'S5'],
         },
         {
@@ -80,7 +73,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R1'],
           required_systems: ['S4', 'S5'],
         },
         {
@@ -90,7 +82,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R5'],
           required_systems: ['S4', 'S6'],
         },
         {
@@ -100,7 +91,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R9'],
           required_systems: ['S8', 'S10'],
         },
         {
@@ -110,7 +100,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R2', 'R4'],
           required_systems: ['S2', 'S5'],
         },
         {
@@ -120,7 +109,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R2', 'R4'],
           required_systems: ['S2', 'S6'],
         },
         {
@@ -130,7 +118,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R7', 'R8'],
           required_systems: ['S7', 'S9'],
         },
         {
@@ -140,7 +127,6 @@ exports.seed = (knex) =>
           cost: 0,
           budget_increase: 200,
           poll_increase: 0,
-          authorized_roles: ['R7', 'R8'],
           required_systems: ['S7', 'S10'],
         },
       ]),

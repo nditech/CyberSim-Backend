@@ -79,8 +79,16 @@ exports.up = async (knex) => {
     tbl.integer('cost').notNullable().defaultTo(0);
     tbl.integer('budget_increase').notNullable().defaultTo(0);
     tbl.decimal('poll_increase').notNullable().defaultTo(0);
-    tbl.specificType('authorized_roles', 'text ARRAY');
     tbl.specificType('required_systems', 'text ARRAY');
+  });
+
+  // MANY actions to MANY roles
+  await knex.schema.createTable('action_role', (tbl) => {
+    tbl.increments('id');
+    tbl.string('action_id').notNullable();
+    tbl.string('role_id').notNullable();
+    tbl.foreign('action_id').references('id').inTable('action');
+    tbl.foreign('role_id').references('id').inTable('role');
   });
 
   await knex.schema.createTable('game', (tbl) => {

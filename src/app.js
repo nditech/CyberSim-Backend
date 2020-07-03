@@ -7,6 +7,7 @@ const logger = require('./logger');
 const db = require('./models/db');
 const { getResponses } = require('./models/response');
 const { getInjections } = require('./models/injection');
+const { getActions } = require('./models/action');
 
 const app = express();
 
@@ -32,7 +33,7 @@ app.get('/', async (req, res) => {
   });
 });
 
-// STATIC DB data are expose via REST api
+// STATIC DB data is exposed via REST api
 
 app.get('/mitigations', async (req, res) => {
   const records = await db('mitigation');
@@ -55,7 +56,7 @@ app.get('/responses', async (req, res) => {
 });
 
 app.get('/actions', async (req, res) => {
-  const records = await db('action');
+  const records = await getActions();
   res.json(records);
 });
 
