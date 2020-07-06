@@ -129,7 +129,12 @@ const changeMitigation = async ({
       }
       await db('game_mitigation')
         .where({ id: gameMitigationId })
-        .update({ state: mitigationValue });
+        .update({
+          state: mitigationValue,
+          ...(game.state === GameStates.PREPARATION
+            ? { preparation: mitigationValue }
+            : {}),
+        });
       if (game.state !== GameStates.PREPARATION) {
         await db('game_log').insert({
           game_id: gameId,
@@ -165,22 +170,15 @@ const startSimulation = async (gameId) => {
     if (state === GameStates.ASSESSMENT) {
       throw new Error('Cannot start finalized game');
     }
-    const updateData = {
-      started_at: db.fn.now(),
-      paused: false,
-    };
-    if (state === GameStates.PREPARATION) {
-      const gameMitigations = await db('game_mitigation')
-        .select('mitigation_id', 'location', 'state')
-        .where({ game_id: gameId });
-      updateData.state = GameStates.SIMULATION;
-      updateData.preparation_mitigations = gameMitigations.reduce(
-        (acc, gm) =>
-          gm.state ? [...acc, `${gm.mitigation_id}_${gm.location}`] : acc,
-        [],
-      );
-    }
-    await db('game').where({ id: gameId }).update(updateData);
+    await db('game')
+      .where({ id: gameId })
+      .update({
+        started_at: db.fn.now(),
+        paused: false,
+        ...(state === GameStates.PREPARATION
+          ? { state: GameStates.SIMULATION }
+          : {}),
+      });
     await db('game_log').insert({
       game_id: gameId,
       game_timer: millisTakenBeforeStarted,

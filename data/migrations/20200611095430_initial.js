@@ -39,6 +39,7 @@ exports.up = async (knex) => {
     tbl.enu('required_mitigation_type', ['hq', 'local', 'party']);
   });
 
+  // TODO: add related palybook section links
   await knex.schema.createTable('injection', (tbl) => {
     tbl.string('id').primary().notNullable();
     tbl.string('title').notNullable();
@@ -107,10 +108,6 @@ exports.up = async (knex) => {
       .notNullable()
       .defaultTo('{}');
     tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
-    tbl
-      .specificType('preparation_mitigations', 'text ARRAY')
-      .notNullable()
-      .defaultTo('{}');
   });
 
   // ONE game to MANY game_mitigation
@@ -122,6 +119,7 @@ exports.up = async (knex) => {
     tbl.foreign('mitigation_id').references('id').inTable('mitigation');
     tbl.enu('location', ['hq', 'local']).notNullable();
     tbl.boolean('state').notNullable().defaultTo(false);
+    tbl.boolean('preparation').notNullable().defaultTo(false);
   });
 
   // ONE game to MANY game_system
