@@ -7,6 +7,7 @@ const {
   createGame,
   getGame,
   changeMitigation,
+  performAction,
   startSimulation,
   pauseSimulation,
   makeResponses,
@@ -209,6 +210,20 @@ module.exports = (http) => {
         }
       },
     );
+
+    socket.on(SocketEvents.PERFORMACTION, async ({ actionId }, callback) => {
+      logger.info('PERFORMACTION: %s', JSON.stringify({ gameId, actionId }));
+      try {
+        const game = await performAction({
+          gameId,
+          actionId,
+        });
+        io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+        callback({ game });
+      } catch (error) {
+        callback({ error: error.message });
+      }
+    });
   });
 
   return io;

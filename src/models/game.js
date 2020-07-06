@@ -591,10 +591,60 @@ const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
   return getGame(gameId);
 };
 
+const performAction = async ({ gameId, actionId }) => {
+  try {
+    const { budget, poll } = await db('game')
+      .select('game.budget', 'game.poll')
+      .where({ 'game.id': gameId })
+      .first();
+
+    const {
+      cost,
+      budget_increase: budgetIncrease,
+      poll_increase: pollIncrease,
+      required_systems: requiredSystems,
+    } = await db('action').where({ id: actionId }).first();
+
+    if (budget < cost) {
+      throw new Error('Not enough budget');
+    }
+
+    const unavailableSystems = await db('game_system')
+      .select()
+      .where({ game_id: gameId, state: false })
+      .whereIn('system_id', requiredSystems);
+
+    if (unavailableSystems.length > 0) {
+      throw new Error(
+        'The required systems for this action are not available.',
+      );
+    }
+
+    await db('game')
+      .where({ id: gameId })
+      .update({
+        budget: budget - cost + budgetIncrease,
+        poll: Math.min(poll + pollIncrease, 100),
+      });
+  } catch (error) {
+    logger.error('performAction ERROR: %s', error);
+    switch (error.message) {
+      case 'Not enough budget':
+        throw error;
+      case 'The required systems for this action are not available':
+        throw error;
+      default:
+        throw new Error('Server error on performing action');
+    }
+  }
+  return getGame(gameId);
+};
+
 module.exports = {
   createGame,
   getGame,
   changeMitigation,
+  performAction,
   startSimulation,
   pauseSimulation,
   makeResponses,
