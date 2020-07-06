@@ -537,16 +537,12 @@ const performAction = async ({ gameId, actionId }) => {
       throw new Error('Not enough budget');
     }
 
-    const systems = await db('game_system').select().where({ game_id: gameId });
+    const unavailableSystems = await db('game_system')
+      .select()
+      .where({ game_id: gameId, state: false })
+      .whereIn('system_id', requiredSystems);
 
-    const isActionAvailable =
-      requiredSystems.reduce(
-        (acc, curr) =>
-          acc + systems.find((system) => system.system_id === curr).state,
-        0,
-      ) === requiredSystems.length;
-
-    if (!isActionAvailable) {
+    if (unavailableSystems.length > 0) {
       throw new Error(
         'The required systems for this action are not available.',
       );
