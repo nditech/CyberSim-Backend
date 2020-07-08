@@ -591,8 +591,14 @@ const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
 
 const performAction = async ({ gameId, actionId }) => {
   try {
-    const { budget, poll } = await db('game')
-      .select('game.budget', 'game.poll')
+    const game = await db('game')
+      .select(
+        'game.budget',
+        'game.poll',
+        'game.started_at',
+        'game.paused',
+        'game.millis_taken_before_started',
+      )
       .where({ 'game.id': gameId })
       .first();
 
@@ -603,7 +609,7 @@ const performAction = async ({ gameId, actionId }) => {
       required_systems: requiredSystems,
     } = await db('action').where({ id: actionId }).first();
 
-    if (budget < cost) {
+    if (game.budget < cost) {
       throw new Error('Not enough budget');
     }
 
@@ -621,9 +627,15 @@ const performAction = async ({ gameId, actionId }) => {
     await db('game')
       .where({ id: gameId })
       .update({
-        budget: budget - cost + budgetIncrease,
-        poll: Math.min(poll + pollIncrease, 100),
+        budget: game.budget - cost + budgetIncrease,
+        poll: Math.min(game.poll + pollIncrease, 100),
       });
+    await db('game_log').insert({
+      game_id: gameId,
+      game_timer: getTimeTaken(game),
+      type: 'Campaign Action',
+      action_id: actionId,
+    });
   } catch (error) {
     logger.error('performAction ERROR: %s', error);
     switch (error.message) {

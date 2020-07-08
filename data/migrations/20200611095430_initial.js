@@ -183,6 +183,7 @@ exports.down = async (knex) => {
   await knex.schema.dropTableIfExists('response');
   await knex.schema.dropTableIfExists('injection');
   await knex.schema.dropTableIfExists('mitigation');
+  await knex.schema.dropTableIfExists('action_role');
   await knex.schema.dropTableIfExists('role');
   await knex.schema.dropTableIfExists('action');
 };
