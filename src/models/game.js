@@ -206,8 +206,9 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
     const {
       millis_taken_before_started: millisTakenBeforeStarted,
       started_at: startedAt,
+      paused,
     } = await db('game')
-      .select('millis_taken_before_started', 'started_at')
+      .select('millis_taken_before_started', 'started_at', 'paused')
       .where({ id: gameId, state: GameStates.SIMULATION })
       .first();
     const newMillisTakenBeforeStarted =
@@ -215,8 +216,10 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
     await db('game')
       .where({ id: gameId, state: GameStates.SIMULATION })
       .update({
-        millis_taken_before_started: newMillisTakenBeforeStarted,
         paused: true,
+        ...(!paused
+          ? { millis_taken_before_started: newMillisTakenBeforeStarted }
+          : {}),
         ...(finishSimulation ? { state: GameStates.ASSESSMENT } : {}),
       });
     await db('game_log').insert({
