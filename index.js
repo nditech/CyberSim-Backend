@@ -1,4 +1,5 @@
 const { createServer } = require('http');
+const { promisify } = require('util');
 
 const db = require('./src/models/db');
 const app = require('./src/app');
@@ -29,6 +30,8 @@ checkEnviroment()
       logger.info(`Server is running at port: ${port}`);
     });
 
+    const serverClose = promisify(server.close).bind(server);
+
     let shuttingDown = false;
     const gracefulShutdown = async () => {
       logger.info('Got kill signal, starting graceful shutdown');
@@ -38,7 +41,7 @@ checkEnviroment()
       shuttingDown = true;
       try {
         if (server) {
-          await server.close();
+          await serverClose();
         }
       } catch (err) {
         logger.error('Error happened during graceful shutdown', err);
