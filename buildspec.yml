@@ -10,13 +10,13 @@ phases:
     runtime-versions:
       nodejs: 12
     commands:
-      - echo Node version 12 installed
-      - echo Installing source NPM dependencies...
+      - echo "Node version 12 installed"
+      - echo "Installing source NPM dependencies..."
       - npm install
 
   build:
     commands:
-      - echo Running postgres
+      - echo "Running postgres"
       - docker run --name postgres -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -e POSTGRES_DB=$POSTGRES_DB -d -p 5432:5432 postgres:12.3-alpine
-      - Testing node application
+      - echo "Testing node application"
       - while !</dev/tcp/postgres/5432; do sleep 1; done; npm run test
