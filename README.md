@@ -18,6 +18,7 @@ Run test: `npm run test`
 
 Start API: `npm run start`
 
+<<<<<<< HEAD
 ## To set up the project on your local environment run the following commands:
 
 ```
@@ -50,3 +51,13 @@ $ npm start
   - **DB_URL**: The connection string for the Postgres Database which is the following: postgres://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
 
 - **RDS (aa1p6s0h1so0mf9)**: A Postgres Database is created to store the data for both staging and production environments The default name of the RDS database is **ebdb**.
+=======
+Initial setup on AWS:
+The AWS enviroment supports both continous integration and continous deployment. The enviroment is made of the following components:
+
+    - Github repository (nditech/CyberSim-Backend): Each change on the local repositories are pushed to a new branch of the Github remote. Once these changes are   reviewed they are merged into the `master` branch.
+
+    - CodePipeline (ndi-cybersim-backend-staging, ndi-cybersim-backend-prod): A CodePipeline project is created for both staging and production enviroments. For the staging enviroment a webhook is registered on Github, so each change on the `master` branch will trigger and automatic build on AWS. For the production enviroment no webhook is registered so and change on the `master` branch will require a manual release in CodePipeline.
+
+    - CodeBuild (ndi-cybersim-backend): A single CodeBuild project is created to build and test both staging and production changes. After a change is triggered on CodePiepeline (manually or automatically), the source code is trasfered to CodeBuild and the
+>>>>>>> After all function added for each test case

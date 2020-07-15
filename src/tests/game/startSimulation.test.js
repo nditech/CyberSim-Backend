@@ -11,6 +11,8 @@ describe('Start Stimulation Function', () => {
     await db('game_mitigation').insert(dumyGameMitigations);
   });
 
+  afterAll(() => db.destroy());
+
   const gameId = dumyGame.id;
 
   test('should change game start time, state and started_at', async () => {

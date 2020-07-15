@@ -1,6 +1,7 @@
 const { setUpDatabase } = require('./setUp');
 const { getActions } = require('../models/action');
 const { staticActions } = require('./testData');
+const db = require('../models/db');
 
 describe('Get Actions Function', () => {
   beforeAll(() => setUpDatabase());
@@ -9,4 +10,6 @@ describe('Get Actions Function', () => {
     const actionsFromDb = await getActions();
     expect(actionsFromDb).toMatchObject(staticActions);
   });
+
+  afterAll(() => db.destroy());
 });
