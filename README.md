@@ -35,7 +35,7 @@ $ npm start
 
 ## AWS environment:
 
-## The AWS environment supports both continuous integration and continuous deployment. The environment is made of the following components:
+### The AWS environment supports both continuous integration and continuous deployment. The environment is made of the following components:
 
 - **Github repository (nditech/CyberSim-Backend)**: Each change on the local repositories are pushed to a new branch in the Github remote. Once these changes are reviewed, they are merged into the `master` branch.
 
