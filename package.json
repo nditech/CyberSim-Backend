@@ -12,7 +12,7 @@
     "seed": "knex seed:run ",
     "reset-db": "npm run unmigrate && npm run migrate && npm run seed",
     "lint": "eslint .",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@types/jest": "^26.0.4",

@@ -6,10 +6,10 @@ const db = require('../models/db');
 describe('Get Actions Function', () => {
   beforeAll(() => setUpDatabase());
 
+  afterAll(() => db.destroy());
+
   test('action table should return with role names', async () => {
     const actionsFromDb = await getActions();
     expect(actionsFromDb).toMatchObject(staticActions);
   });
-
-  afterAll(() => db.destroy());
 });
