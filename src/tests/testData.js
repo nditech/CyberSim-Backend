@@ -10,7 +10,12 @@ const dumyGame = {
   every_injection_checked: false,
 };
 
-const dumyInjections = null;
+const dumyInjections = [
+  {
+    injection_id: 'I1',
+    game_id: 'TestGame',
+  },
+];
 
 const dumyGameMitigations = [
   {
