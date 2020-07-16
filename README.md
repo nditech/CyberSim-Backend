@@ -29,7 +29,7 @@ $ npm install
 $ cp .env.example .env
 # Start Postgres and Adminer by running
 $ docker-compose up -d
-# Start the API on localhost:3001 (if nothing chaned in .env.example)
+# Start the API on localhost:3001 (if nothing changed in .env.example)
 $ npm start
 ```
 
@@ -44,6 +44,7 @@ $ npm start
 - **CodeBuild (ndi-cybersim-backend)**: A single CodeBuild project is created to build and test both staging and production changes. After a change is triggered on CodePiepeline (manually or automatically), the source code is transferred to CodeBuild and the steps defined in the `buildspec.yml` file are executed. These steps include the installation of node, npm packages and Postgres on a virtual machine and the execution of predefined database related tests. Once these tests are run, CodePiepeline begins the deployment.
 
 - **Elastic Beanstalk (NdiCybersimBackend-staging, NdiCybersimBackend-prod)**: In Elastic Beanstalk (EB) a different environment is created for both staging and production. In both environments, the node application is running inside a docker container so an existing Dockerfile inside the source code is necessary for EB. The docker image is created using the Dockerfile in the root. Once the deployment is compleated, the API will be live. For EB the following environment variables must be set (These variables can be set seberatly for each EB environment under the Configuration/Software Tab of the AWS Console.):
+
   - **PORT**: The PORT must match the port exposed in the docker container which currently is **3001**.
   - **NODE_ENV**: Must be either `production` or `development`. If the given value is 'development' the server will reset the Postgres Database on each restart.
   - **DB_URL**: The connection string for the Postgres Database which is the following: postgres://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
