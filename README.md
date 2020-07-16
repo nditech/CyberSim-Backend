@@ -48,4 +48,4 @@ $ npm start
   - **NODE_ENV**: Must be either `production` or `development`. If the given value is 'development' the server will reset the Postgres Database on each restart.
   - **DB_URL**: The connection string for the Postgres Database which is the following: postgres://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
 
-- RDS (aa1p6s0h1so0mf9): A Postgres Database is created to store the data for both staging and production environments The default name of the RDS database is **ebdb**.
+- **RDS (aa1p6s0h1so0mf9)**: A Postgres Database is created to store the data for both staging and production environments The default name of the RDS database is **ebdb**.
