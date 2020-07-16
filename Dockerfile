@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package* ./
 COPY . .
 
-RUN npm i
+RUN npm i --production
 
 EXPOSE 3001
 
