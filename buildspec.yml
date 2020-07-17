@@ -1,0 +1,22 @@
+version: 0.2
+env:
+  variables:
+    POSTGRES_USER: test
+    POSTGRES_PASSWORD: password
+    POSTGRES_DB: ndi
+    DB_URL: postgres://test:password@localhost:5432/ndi
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+    commands:
+      - echo "Node version 12 installed"
+      - echo "Installing source NPM dependencies..."
+      - npm install
+
+  build:
+    commands:
+      - echo "Running postgres"
+      - docker run --name postgres -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -e POSTGRES_DB=$POSTGRES_DB -d -p 5432:5432 postgres:12.3-alpine
+      - echo "Testing node application"
+      - while !</dev/tcp/localhost/5432; do sleep 1; done; npm run test
