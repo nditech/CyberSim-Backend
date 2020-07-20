@@ -10,7 +10,11 @@ const checkEnviroment = async () => {
     throw new Error('NODE_ENV must be set!');
   }
 
-  if (process.env.NODE_ENV === 'development') {
+  if (!process.env.DB_URL) {
+    throw new Error('DB_URL must be set!');
+  }
+
+  if (process.env.NODE_ENV === 'test') {
     await db.migrate.down();
     await db.migrate.up();
     await db.seed.run();
@@ -40,7 +44,7 @@ checkEnviroment()
 
       server.close((err) => {
         if (err) {
-          logger.error('Error happend during graceful shutdown:', err);
+          logger.error('Error happend during graceful shutdown: %s', err);
           process.exit(1);
         }
         logger.info('Graceful shutdown finished.');
@@ -51,6 +55,6 @@ checkEnviroment()
     process.on('SIGTERM', gracefulShutdown);
   })
   .catch((err) => {
-    logger.error('Enviroment check is unsuccessful', err);
+    logger.error('Enviroment check is unsuccessful: %s', err);
     process.exit(1);
   });

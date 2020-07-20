@@ -46,7 +46,7 @@ $ npm start
 - **Elastic Beanstalk (NdiCybersimBackend-staging, NdiCybersimBackend-prod)**: In Elastic Beanstalk (EB) a different environment is created for both staging and production. In both environments, the node application is running inside a docker container so an existing Dockerfile inside the source code is necessary for EB. The docker image is created using the Dockerfile in the root. Once the deployment is compleated, the API will be live. For EB the following environment variables must be set (These variables can be set seberatly for each EB environment under the Configuration/Software Tab of the AWS Console.):
 
   - **PORT**: The PORT must match the port exposed in the docker container which currently is **3001**.
-  - **NODE_ENV**: Must be either `production` or `development`. If the given value is 'development' the server will reset the Postgres Database on each restart.
+  - **NODE_ENV**: Must be either `production`, `development` or `test`. If the given value is `test` the server will reset the Postgres Database on each restart.
   - **DB_URL**: The connection string for the Postgres Database which is the following: postgres://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
 
 - **RDS (aa1p6s0h1so0mf9)**: A Postgres Database is created to store the data for both staging and production environments The default name of the RDS database is **ebdb**.
