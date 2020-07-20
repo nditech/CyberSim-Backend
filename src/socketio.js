@@ -12,7 +12,7 @@ const {
   pauseSimulation,
   makeResponses,
   injectGames,
-  changeGameInjectionDeliverance,
+  deilverGameInjection,
   makeNonCorrectInjectionResponse,
 } = require('./models/game');
 
@@ -150,17 +150,16 @@ module.exports = (http) => {
     });
 
     socket.on(
-      SocketEvents.DELIVEREINJECTION,
-      async ({ injectionId, delivered }, callback) => {
+      SocketEvents.DELIVERINJECTION,
+      async ({ injectionId }, callback) => {
         logger.info(
-          'DELIVEREINJECTION: %s',
-          JSON.stringify({ gameId, injectionId, delivered }),
+          'DELIVERINJECTION: %s',
+          JSON.stringify({ gameId, injectionId }),
         );
         try {
-          const game = await changeGameInjectionDeliverance({
+          const game = await deilverGameInjection({
             gameId,
             injectionId,
-            delivered,
           });
           io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
           callback({ game });

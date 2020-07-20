@@ -479,33 +479,16 @@ const injectGames = async () => {
         return acc;
       }, [])
       .map(async ({ game, injectionsToSkip, injectionsToInject }) => {
-        let overallPollChange = 0;
-        let systemsToDisable = [];
         // 1. Add injections
         await Promise.all(
-          injectionsToInject.map(async (injection) => {
-            if (injection.poll_change) {
-              overallPollChange += injection.poll_change;
-            }
-            if (injection.systems_to_disable.length) {
-              systemsToDisable = systemsToDisable.concat(
-                injection.systems_to_disable,
-              );
-            }
-            await db('game_injection').insert({
+          injectionsToInject.map(async (injection) =>
+            db('game_injection').insert({
               game_id: game.id,
               injection_id: injection.id,
-            });
-          }),
+            }),
+          ),
         );
-        // 2. Change systems to down
-        if (systemsToDisable.length) {
-          await db('game_system')
-            .where({ game_id: game.id })
-            .whereIn('system_id', systemsToDisable)
-            .update({ state: false });
-        }
-        // 3. Change poll, save prevented injections, update every_injection_checked
+        // 2. Save prevented injections, update every_injection_checked
         const everyInjectionChecked =
           injections.length ===
           [
@@ -514,22 +497,13 @@ const injectGames = async () => {
             ...injectionsToSkip,
             ...injectionsToInject,
           ].length;
-        if (
-          overallPollChange !== 0 ||
-          injectionsToSkip.length ||
-          everyInjectionChecked
-        ) {
+        if (injectionsToSkip.length || everyInjectionChecked) {
           await db('game')
             .where({ 'game.id': game.id })
             .update({
               ...(everyInjectionChecked
                 ? {
                     every_injection_checked: true,
-                  }
-                : {}),
-              ...(overallPollChange !== 0
-                ? {
-                    poll: Math.max(0, game.poll + overallPollChange),
                   }
                 : {}),
               ...(injectionsToSkip.length
@@ -546,20 +520,37 @@ const injectGames = async () => {
   );
 };
 
-const changeGameInjectionDeliverance = async ({
-  gameId,
-  injectionId,
-  delivered,
-}) => {
+const deilverGameInjection = async ({ gameId, injectionId }) => {
   try {
+    const injection = await db('injection')
+      .select('systems_to_disable', 'poll_change')
+      .where({ id: injectionId })
+      .first();
+    if (injection.systems_to_disable.length) {
+      await db('game_system')
+        .where({ game_id: gameId })
+        .whereIn('system_id', injection.systems_to_disable)
+        .update({ state: false });
+    }
+    if (injection.poll_change) {
+      const game = await db('game')
+        .select('poll')
+        .where({ id: gameId })
+        .first();
+      await db('game')
+        .where({ 'game.id': gameId })
+        .update({
+          poll: Math.max(0, game.poll + injection.poll_change),
+        });
+    }
     await db('game_injection')
       .where({
         game_id: gameId,
         injection_id: injectionId,
       })
-      .update({ delivered });
+      .update({ delivered: true });
   } catch (error) {
-    logger.error('changeGameInjectionDeliverance ERROR: %s', error);
+    logger.error('deilverGameInjection ERROR: %s', error);
     throw new Error('Server error on changing games injection deliverance');
   }
   return getGame(gameId);
@@ -662,6 +653,6 @@ module.exports = {
   pauseSimulation,
   makeResponses,
   injectGames,
-  changeGameInjectionDeliverance,
+  deilverGameInjection,
   makeNonCorrectInjectionResponse,
 };
