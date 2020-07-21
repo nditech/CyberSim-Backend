@@ -12,7 +12,7 @@ const {
   pauseSimulation,
   makeResponses,
   injectGames,
-  deilverGameInjection,
+  deliverGameInjection,
   makeNonCorrectInjectionResponse,
 } = require('./models/game');
 
@@ -157,7 +157,7 @@ module.exports = (http) => {
           JSON.stringify({ gameId, injectionId }),
         );
         try {
-          const game = await deilverGameInjection({
+          const game = await deliverGameInjection({
             gameId,
             injectionId,
           });

@@ -15,6 +15,10 @@ const dumyInjections = [
     injection_id: 'I1',
     game_id: 'TestGame',
   },
+  {
+    injection_id: 'I11',
+    game_id: 'TestGame',
+  },
 ];
 
 const dumyGameMitigations = [
