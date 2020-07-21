@@ -1,6 +1,6 @@
 const db = require('../../src/models/db');
 const resetTables = require('../resetTables');
-const { deilverGameInjection } = require('../../src/models/game');
+const { deliverGameInjection } = require('../../src/models/game');
 const { dumyGame, dumyInjections, dumyGameSystems } = require('../testData');
 
 describe('Pause Simulation Function', () => {
@@ -21,7 +21,7 @@ describe('Pause Simulation Function', () => {
       .where({ id: injection.injection_id })
       .first();
 
-    const { systems } = await deilverGameInjection({
+    const { systems } = await deliverGameInjection({
       gameId,
       injectionId: injection.injection_id,
     });
@@ -40,7 +40,7 @@ describe('Pause Simulation Function', () => {
 
     const { poll: pollBefore } = await db('game').where({ id: gameId }).first();
 
-    const { poll: pollAfter } = await deilverGameInjection({
+    const { poll: pollAfter } = await deliverGameInjection({
       gameId,
       injectionId: injection.injection_id,
     });
@@ -49,7 +49,7 @@ describe('Pause Simulation Function', () => {
   });
 
   test('should set game delivered property to true', async () => {
-    await deilverGameInjection({
+    await deliverGameInjection({
       gameId,
       injectionId: injection.injection_id,
     });

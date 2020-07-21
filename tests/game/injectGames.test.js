@@ -13,7 +13,7 @@ describe('Inject Games Function', () => {
   dumyGame.paused = false;
   dumyGame1.paused = false;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await resetTables();
     await db('game').insert(dumyGame);
     await db('game').insert(dumyGame1);
@@ -26,8 +26,51 @@ describe('Inject Games Function', () => {
     );
   });
 
-  test('should set every_injection_checked and prevented_injections filds', async () => {
+  afterAll(() => db.destroy());
+
+  test('should inject if skipper mitigation is down', async () => {
     const games = await injectGames();
-    console.log(games);
+    games.forEach((game) => {
+      expect(game.injections).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            injection_id: 'I1',
+            game_id: game.id,
+            delivered: false,
+          }),
+          expect.objectContaining({
+            injection_id: 'I2',
+            game_id: game.id,
+            delivered: false,
+          }),
+        ]),
+      );
+    });
+  });
+
+  test('should not inject if skipper mitigation is up', async () => {
+    await db('game_mitigation')
+      .where({ mitigation_id: 'M14', location: 'hq' })
+      .update({ state: true });
+
+    await db('game')
+      .whereIn('id', [dumyGame.id, dumyGame1.id])
+      .update({ started_at: new Date(Date.now() - 630000) });
+
+    const games = await injectGames();
+    games.forEach((game) => {
+      expect(game.prevented_injections).toEqual(expect.arrayContaining(['I8']));
+    });
+  });
+
+  test('should set every_injection_checked', async () => {
+    await db('game')
+      .whereIn('id', [dumyGame.id, dumyGame1.id])
+      .update({ started_at: new Date(Date.now() - 4920000) });
+
+    const games = await injectGames();
+    games.forEach((game) => {
+      expect(game.every_injection_checked).toBe(true);
+    });
   });
 });
