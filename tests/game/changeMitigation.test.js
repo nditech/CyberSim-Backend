@@ -1,12 +1,12 @@
-const { setUpDatabase } = require('../setUp');
-const { changeMitigation } = require('../../models/game');
-const db = require('../../models/db');
+const db = require('../../src/models/db');
+const resetTables = require('../resetTables');
+const { changeMitigation } = require('../../src/models/game');
 const { dumyGame, dumyGameMitigations } = require('../testData');
-const GameStates = require('../../constants/GameStates');
+const GameStates = require('../../src/constants/GameStates');
 
 describe('Change Mitigation Function', () => {
   beforeEach(async () => {
-    await setUpDatabase();
+    await resetTables();
     await db('game').insert(dumyGame);
     await db('game_mitigation').insert(dumyGameMitigations);
   });

@@ -1,14 +1,15 @@
-const { setUpDatabase } = require('../setUp');
-const db = require('../../models/db');
-const { pauseSimulation } = require('../../models/game');
+const db = require('../../src/models/db');
+const resetTables = require('../resetTables');
+const { pauseSimulation } = require('../../src/models/game');
 const { dumyGame } = require('../testData');
-const GameStates = require('../../constants/GameStates');
+const GameStates = require('../../src/constants/GameStates');
+
+dumyGame.started_at = db.fn.now();
+dumyGame.state = GameStates.SIMULATION;
 
 describe('Pause Simulation Function', () => {
   beforeAll(async () => {
-    await setUpDatabase();
-    dumyGame.started_at = db.fn.now();
-    dumyGame.state = GameStates.SIMULATION;
+    await resetTables();
     await db('game').insert(dumyGame);
   });
 

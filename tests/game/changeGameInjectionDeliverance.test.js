@@ -1,11 +1,11 @@
-const { setUpDatabase } = require('../setUp');
-const db = require('../../models/db');
-const { changeGameInjectionDeliverance } = require('../../models/game');
+const db = require('../../src/models/db');
+const resetTables = require('../resetTables');
+const { changeGameInjectionDeliverance } = require('../../src/models/game');
 const { dumyGame, dumyInjections } = require('../testData');
 
 describe('Pause Simulation Function', () => {
   beforeAll(async () => {
-    await setUpDatabase();
+    await resetTables();
     await db('game').insert(dumyGame);
     await db('game_injection').insert(dumyInjections);
   });

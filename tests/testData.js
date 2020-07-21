@@ -2,7 +2,7 @@ const dumyGame = {
   id: 'TestGame',
   state: 'PREPARATION',
   poll: 40,
-  budget: 50000,
+  budget: 7000,
   started_at: null,
   paused: true,
   millis_taken_before_started: 0,

@@ -1,13 +1,7 @@
-const { setUpDatabase } = require('./setUp');
-const { getActions } = require('../models/action');
+const { getActions } = require('../src/models/action');
 const { staticActions } = require('./testData');
-const db = require('../models/db');
 
 describe('Get Actions Function', () => {
-  beforeAll(() => setUpDatabase());
-
-  afterAll(() => db.destroy());
-
   test('action table should return with role names', async () => {
     const actionsFromDb = await getActions();
     expect(actionsFromDb).toMatchObject(staticActions);
