@@ -3,7 +3,7 @@ env:
   variables:
     POSTGRES_USER: test
     POSTGRES_PASSWORD: password
-    POSTGRES_DB: ndi
+    POSTGRES_DB: ndi_test
     DB_URL: postgres://test:password@localhost:5432/ndi
 phases:
   install:
