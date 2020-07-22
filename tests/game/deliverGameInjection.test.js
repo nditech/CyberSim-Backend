@@ -11,7 +11,10 @@ describe('Pause Simulation Function', () => {
     await db('game_system').insert(dumyGameSystems);
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   const gameId = dumyGame.id;
   const injection = dumyInjections.find((inj) => inj.injection_id === 'I11');

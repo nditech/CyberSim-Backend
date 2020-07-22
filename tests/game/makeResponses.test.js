@@ -18,7 +18,10 @@ describe('Inject Games Function', () => {
     await db('game_system').insert(dumyGameSystems);
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   test('should throw if required mitigation is down', async () => {
     await expect(

@@ -11,7 +11,10 @@ describe('Start Stimulation Function', () => {
     await db('game_mitigation').insert(dumyGameMitigations);
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   const gameId = dumyGame.id;
 

@@ -13,7 +13,10 @@ describe('Pause Simulation Function', () => {
     await db('game_injection').insert(dumyInjections);
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   const gameId = dumyGame.id;
   const injectionId = dumyInjections[0].injection_id;

@@ -10,7 +10,10 @@ describe('Perform Action Function', () => {
     await db('game_system').insert(dumyGameSystems);
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   const gameId = dumyGame.id;
   const actionToPerorm = staticActions[0];

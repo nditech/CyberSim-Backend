@@ -26,7 +26,10 @@ describe('Inject Games Function', () => {
     );
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   test('should inject if skipper mitigation is down', async () => {
     const games = await injectGames();

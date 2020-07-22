@@ -1,3 +1,4 @@
+const db = require('../../src/models/db');
 const { createGame } = require('../../src/models/game');
 const resetTables = require('../resetTables');
 const {
@@ -9,6 +10,11 @@ const {
 describe('Create Game Function', () => {
   beforeAll(async () => {
     await resetTables();
+  });
+
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
   });
 
   const { id: gameId } = dumyGame;

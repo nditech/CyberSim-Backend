@@ -13,7 +13,10 @@ describe('Pause Simulation Function', () => {
     await db('game').insert(dumyGame);
   });
 
-  afterAll(() => db.destroy());
+  afterAll(async (done) => {
+    await db.destroy();
+    done();
+  });
 
   const gameId = dumyGame.id;
 
