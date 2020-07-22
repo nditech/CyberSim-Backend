@@ -224,7 +224,9 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
       });
     await db('game_log').insert({
       game_id: gameId,
-      game_timer: newMillisTakenBeforeStarted,
+      ...(!paused
+        ? { game_timer: newMillisTakenBeforeStarted }
+        : { game_timer: millisTakenBeforeStarted }),
       type: 'Game State Changed',
       descripition: finishSimulation ? 'Game Finalized' : 'Timer Stopped',
     });
@@ -520,7 +522,7 @@ const injectGames = async () => {
   );
 };
 
-const deilverGameInjection = async ({ gameId, injectionId }) => {
+const deliverGameInjection = async ({ gameId, injectionId }) => {
   try {
     const injection = await db('injection')
       .select('systems_to_disable', 'poll_change')
@@ -550,7 +552,7 @@ const deilverGameInjection = async ({ gameId, injectionId }) => {
       })
       .update({ delivered: true });
   } catch (error) {
-    logger.error('deilverGameInjection ERROR: %s', error);
+    logger.error('deliverGameInjection ERROR: %s', error);
     throw new Error('Server error on changing games injection deliverance');
   }
   return getGame(gameId);
@@ -653,6 +655,6 @@ module.exports = {
   pauseSimulation,
   makeResponses,
   injectGames,
-  deilverGameInjection,
+  deliverGameInjection,
   makeNonCorrectInjectionResponse,
 };
