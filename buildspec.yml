@@ -8,7 +8,7 @@ env:
 phases:
   install:
     runtime-versions:
-      nodejs: 8
+      nodejs: 10
     commands:
       - echo "Node version 12 installed"
       - echo "Installing source NPM dependencies..."
