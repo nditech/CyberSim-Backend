@@ -33,6 +33,8 @@ $ docker-compose up -d
 $ npm start
 ```
 
+## For some basic source code explanation see the [wiki page](https://github.com/nditech/CyberSim-Backend/wiki)
+
 ## AWS environment:
 
 ### The AWS environment supports both continuous integration and continuous deployment. The environment is made of the following components:
