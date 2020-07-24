@@ -1,5 +1,5 @@
 const db = require('../../src/models/db');
-const resetTables = require('../resetTables');
+const resetGameTables = require('../resetGameTables');
 const { pauseSimulation } = require('../../src/models/game');
 const { dumyGame } = require('../testData');
 const GameStates = require('../../src/constants/GameStates');
@@ -9,7 +9,7 @@ dumyGame.state = GameStates.SIMULATION;
 
 describe('Pause Simulation Function', () => {
   beforeAll(async () => {
-    await resetTables();
+    await resetGameTables();
     await db('game').insert(dumyGame);
   });
 

@@ -14,6 +14,7 @@ const {
   injectGames,
   deliverGameInjection,
   makeNonCorrectInjectionResponse,
+  performCurveball,
 } = require('./models/game');
 
 module.exports = (http) => {
@@ -223,6 +224,26 @@ module.exports = (http) => {
         callback({ error: error.message });
       }
     });
+
+    socket.on(
+      SocketEvents.PERFORMCURVEBALL,
+      async ({ curveballId }, callback) => {
+        logger.info(
+          'PERFORMCURVEBALL: %s',
+          JSON.stringify({ gameId, curveballId }),
+        );
+        try {
+          const game = await performCurveball({
+            gameId,
+            curveballId,
+          });
+          io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
+          callback({ game });
+        } catch (error) {
+          callback({ error: error.message });
+        }
+      },
+    );
   });
 
   return io;

@@ -1,11 +1,11 @@
 const db = require('../../src/models/db');
 const { performAction } = require('../../src/models/game');
 const { dumyGame, dumyGameSystems, staticActions } = require('../testData');
-const resetTables = require('../resetTables');
+const resetGameTables = require('../resetGameTables');
 
 describe('Perform Action Function', () => {
   beforeEach(async () => {
-    await resetTables();
+    await resetGameTables();
     await db('game').insert(dumyGame);
     await db('game_system').insert(dumyGameSystems);
   });

@@ -637,6 +637,44 @@ const performAction = async ({ gameId, actionId }) => {
   return getGame(gameId);
 };
 
+const performCurveball = async ({ gameId, curveballId }) => {
+  try {
+    const game = await db('game')
+      .select(
+        'game.budget',
+        'game.poll',
+        'game.started_at',
+        'game.paused',
+        'game.millis_taken_before_started',
+      )
+      .where({ 'game.id': gameId })
+      .first();
+
+    const {
+      budget_decrease: budgetDecrease,
+      poll_decrease: pollDecrease,
+    } = await db('curveball').where({ id: curveballId }).first();
+
+    await db('game')
+      .where({ id: gameId })
+      .update({
+        budget: game.budget - budgetDecrease,
+        poll: Math.max(game.poll - pollDecrease, 0),
+      });
+
+    await db('game_log').insert({
+      game_id: gameId,
+      game_timer: getTimeTaken(game),
+      type: 'Curveball Event',
+      curveball_id: curveballId,
+    });
+  } catch (error) {
+    logger.error('performCurveball ERROR: %s', error);
+    throw new Error('Server error on performing action');
+  }
+  return getGame(gameId);
+};
+
 module.exports = {
   createGame,
   getGame,
@@ -648,4 +686,5 @@ module.exports = {
   injectGames,
   deliverGameInjection,
   makeNonCorrectInjectionResponse,
+  performCurveball,
 };

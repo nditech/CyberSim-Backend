@@ -60,4 +60,9 @@ app.get('/actions', async (req, res) => {
   res.json(records);
 });
 
+app.get('/curveballs', async (req, res) => {
+  const records = await db('curveball');
+  res.json(records);
+});
+
 module.exports = app;

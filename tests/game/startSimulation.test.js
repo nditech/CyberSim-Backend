@@ -1,12 +1,12 @@
 const db = require('../../src/models/db');
-const resetTables = require('../resetTables');
+const resetGameTables = require('../resetGameTables');
 const { startSimulation } = require('../../src/models/game');
 const { dumyGame, dumyGameMitigations } = require('../testData');
 const GameStates = require('../../src/constants/GameStates');
 
 describe('Start Stimulation Function', () => {
   beforeEach(async () => {
-    await resetTables();
+    await resetGameTables();
     await db('game').insert(dumyGame);
     await db('game_mitigation').insert(dumyGameMitigations);
   });

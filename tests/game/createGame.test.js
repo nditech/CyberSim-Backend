@@ -1,6 +1,6 @@
 const db = require('../../src/models/db');
 const { createGame } = require('../../src/models/game');
-const resetTables = require('../resetTables');
+const resetGameTables = require('../resetGameTables');
 const {
   dumyGame,
   dumyGameMitigations,
@@ -9,7 +9,7 @@ const {
 
 describe('Create Game Function', () => {
   beforeAll(async () => {
-    await resetTables();
+    await resetGameTables();
   });
 
   afterAll(async (done) => {

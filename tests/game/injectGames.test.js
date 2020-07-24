@@ -1,6 +1,6 @@
 const db = require('../../src/models/db');
 const { injectGames } = require('../../src/models/game');
-const resetTables = require('../resetTables');
+const resetGameTables = require('../resetGameTables');
 const { dumyGame, dumyGameMitigations } = require('../testData');
 const GameStates = require('../../src/constants/GameStates');
 
@@ -14,7 +14,7 @@ describe('Inject Games Function', () => {
   dumyGame1.paused = false;
 
   beforeEach(async () => {
-    await resetTables();
+    await resetGameTables();
     await db('game').insert(dumyGame);
     await db('game').insert(dumyGame1);
     await db('game_mitigation').insert(dumyGameMitigations);

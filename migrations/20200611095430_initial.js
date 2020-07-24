@@ -83,6 +83,13 @@ exports.up = async (knex) => {
     tbl.specificType('required_systems', 'text ARRAY');
   });
 
+  await knex.schema.createTable('curveball', (tbl) => {
+    tbl.string('id').primary().notNullable();
+    tbl.string('description').notNullable();
+    tbl.integer('budget_decrease').notNullable().defaultTo(0);
+    tbl.decimal('poll_decrease').notNullable().defaultTo(0);
+  });
+
   // MANY actions to MANY roles
   await knex.schema.createTable('action_role', (tbl) => {
     tbl.increments('id');
@@ -158,6 +165,7 @@ exports.up = async (knex) => {
         'System Restore Action',
         'Campaign Action',
         'Game State Changed',
+        'Curveball Event',
       ])
       .notNullable();
     tbl.string('descripition');
@@ -168,6 +176,8 @@ exports.up = async (knex) => {
     tbl.foreign('response_id').references('id').inTable('response');
     tbl.string('action_id'); // Action
     tbl.foreign('action_id').references('id').inTable('action');
+    tbl.string('curveball_id'); // Curveball
+    tbl.foreign('curveball_id').references('id').inTable('curveball');
   });
 };
 
@@ -179,6 +189,7 @@ exports.down = async (knex) => {
   await knex.schema.dropTableIfExists('game_log');
   await knex.schema.dropTableIfExists('game');
   // static data
+  await knex.schema.dropTableIfExists('curveball');
   await knex.schema.dropTableIfExists('system');
   await knex.schema.dropTableIfExists('injection_response');
   await knex.schema.dropTableIfExists('response');

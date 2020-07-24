@@ -559,6 +559,15 @@ const staticActions = [
   },
 ];
 
+const staticCurveballs = [
+  {
+    id: 'C4',
+    description: 'Disaster',
+    budget_decrease: 1000,
+    poll_decrease: 10,
+  },
+];
+
 const staticInjections = [
   {
     id: 'I2',
@@ -2108,4 +2117,5 @@ module.exports = {
   dumyLogs,
   staticInjections,
   staticActions,
+  staticCurveballs,
 };
