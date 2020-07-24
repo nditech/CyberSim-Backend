@@ -39,11 +39,11 @@ exports.up = async (knex) => {
     tbl.enu('required_mitigation_type', ['hq', 'local', 'party']);
   });
 
-  // TODO: add related palybook section links
   await knex.schema.createTable('injection', (tbl) => {
     tbl.string('id').primary().notNullable();
     tbl.string('title').notNullable();
     tbl.string('description').notNullable();
+    tbl.string('recommendations');
     tbl.integer('trigger_time').notNullable(); // in ms
     tbl.enu('location', ['hq', 'local']);
     tbl.enu('type', ['Table', 'Background', 'Board']).notNullable();
@@ -141,6 +141,7 @@ exports.up = async (knex) => {
     tbl.foreign('injection_id').references('id').inTable('injection');
     tbl.specificType('correct_responses_made', 'text ARRAY');
     tbl.boolean('delivered').notNullable().defaultTo(false);
+    tbl.integer('delivered_at').notNullable().defaultTo(0); // game timer
     tbl.integer('response_made_at').notNullable().defaultTo(0); // game timer
   });
 
@@ -155,7 +156,7 @@ exports.up = async (knex) => {
       .enu('type', [
         'Budget Item Purchase',
         'System Restore Action',
-        'Campaign Action', // TODO:
+        'Campaign Action',
         'Game State Changed',
       ])
       .notNullable();

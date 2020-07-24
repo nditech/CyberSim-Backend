@@ -145,7 +145,6 @@ describe('Inject Games Function', () => {
           injection.injection_id === 'I1' && injection.game_id === dumyGame.id,
       ),
     ).toMatchObject({
-      delivered: true,
       correct_responses_made: ['RP1'],
     });
   });

@@ -4,8 +4,6 @@ const logger = require('../logger');
 const GameStates = require('../constants/GameStates');
 const { getTimeTaken } = require('../util');
 
-// TODO: write tests for these functions
-
 const getGame = (id) =>
   db('game')
     .select(
@@ -368,7 +366,6 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
           injection_id: injectionId,
         })
         .update({
-          delivered: true,
           correct_responses_made: responseIds,
           response_made_at: timeTaken,
         });
@@ -524,6 +521,10 @@ const injectGames = async () => {
 
 const deliverGameInjection = async ({ gameId, injectionId }) => {
   try {
+    const game = await db('game')
+      .select('started_at', 'paused', 'millis_taken_before_started', 'poll')
+      .where({ id: gameId })
+      .first();
     const injection = await db('injection')
       .select('systems_to_disable', 'poll_change')
       .where({ id: injectionId })
@@ -535,10 +536,6 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
         .update({ state: false });
     }
     if (injection.poll_change) {
-      const game = await db('game')
-        .select('poll')
-        .where({ id: gameId })
-        .first();
       await db('game')
         .where({ 'game.id': gameId })
         .update({
@@ -550,7 +547,7 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
         game_id: gameId,
         injection_id: injectionId,
       })
-      .update({ delivered: true });
+      .update({ delivered: true, delivered_at: getTimeTaken(game) });
   } catch (error) {
     logger.error('deliverGameInjection ERROR: %s', error);
     throw new Error('Server error on changing games injection deliverance');
@@ -561,22 +558,16 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
 const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
   try {
     const game = await db('game')
-      .select(
-        'game.started_at',
-        'game.paused',
-        'game.millis_taken_before_started',
-      )
-      .where({ 'game.id': gameId })
+      .select('started_at', 'paused', 'millis_taken_before_started')
+      .where({ id: gameId })
       .first();
-    const timeTaken = getTimeTaken(game);
     await db('game_injection')
       .where({
         game_id: gameId,
         injection_id: injectionId,
       })
       .update({
-        delivered: true,
-        response_made_at: timeTaken,
+        response_made_at: getTimeTaken(game),
       });
   } catch (error) {
     logger.error('makeNonCorrectInjectionResponse ERROR: %s', error);

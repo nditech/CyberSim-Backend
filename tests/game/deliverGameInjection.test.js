@@ -3,6 +3,9 @@ const resetTables = require('../resetTables');
 const { deliverGameInjection } = require('../../src/models/game');
 const { dumyGame, dumyInjections, dumyGameSystems } = require('../testData');
 
+dumyGame.started_at = db.fn.now();
+dumyGame.paused = false;
+
 describe('Pause Simulation Function', () => {
   beforeAll(async () => {
     await resetTables();
@@ -51,18 +54,24 @@ describe('Pause Simulation Function', () => {
     expect(pollAfter).toBe(Math.max(0, pollBefore + pollChange));
   });
 
-  test('should set game delivered property to true', async () => {
+  test('should set game delivered and delivered_at property', async () => {
+    const { started_at: startedAt } = await db('game')
+      .where({ id: gameId })
+      .first();
+    const dateBeforeTest = Date.now() - new Date(startedAt).getTime();
     await deliverGameInjection({
       gameId,
       injectionId: injection.injection_id,
     });
+    const dateAfterTest = Date.now() - new Date(startedAt).getTime();
 
-    const { delivered } = await db('game_injection')
+    const { delivered, delivered_at: deliveredAt } = await db('game_injection')
       .where({
         injection_id: injection.injection_id,
       })
       .first();
-
     expect(delivered).toBe(true);
+    expect(deliveredAt).toBeGreaterThan(dateBeforeTest);
+    expect(deliveredAt).toBeLessThan(dateAfterTest);
   });
 });

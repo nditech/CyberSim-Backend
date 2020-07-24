@@ -15,8 +15,8 @@ const checkEnviroment = async () => {
   }
 
   if (process.env.NODE_ENV === 'test') {
-    await db.migrate.down();
-    await db.migrate.up();
+    await db.migrate.rollback({}, true);
+    await db.migrate.latest();
     await db.seed.run();
     logger.info('Database successfully reseted');
   } else {
