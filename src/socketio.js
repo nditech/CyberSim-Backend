@@ -47,9 +47,9 @@ module.exports = (http) => {
       try {
         const game = await createGame(id);
         if (gameId) {
-          socket.leave(gameId);
+          await socket.leave(gameId);
         }
-        socket.join(id);
+        await socket.join(id);
         gameId = id;
         callback({ game });
       } catch (_) {
@@ -65,9 +65,9 @@ module.exports = (http) => {
           callback({ error: 'Game not found!' });
         }
         if (gameId) {
-          socket.leave(gameId);
+          await socket.leave(gameId);
         }
-        socket.join(id);
+        await socket.join(id);
         gameId = id;
         callback({ game });
       } catch (error) {
@@ -110,6 +110,8 @@ module.exports = (http) => {
       logger.info('STARTSIMULATION: %s', gameId);
       try {
         const game = await startSimulation(gameId);
+        console.log(game);
+        console.log(socket.rooms);
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
         callback({ game });
       } catch (error) {
