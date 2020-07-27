@@ -110,8 +110,6 @@ module.exports = (http) => {
       logger.info('STARTSIMULATION: %s', gameId);
       try {
         const game = await startSimulation(gameId);
-        console.log(game);
-        console.log(socket.rooms);
         io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
         callback({ game });
       } catch (error) {
