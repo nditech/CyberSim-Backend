@@ -9,7 +9,7 @@
     "start": "nodemon -r dotenv/config . | pino-pretty",
     "migrate": "knex migrate:latest",
     "unmigrate": "knex migrate:rollback",
-    "seed": "knex seed:run ",
+    "seed": "knex seed:run",
     "reset-db": "npm run unmigrate && npm run migrate && npm run seed",
     "lint": "eslint .",
     "test": "jest --runInBand"

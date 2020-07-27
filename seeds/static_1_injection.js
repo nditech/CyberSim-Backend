@@ -15,6 +15,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          recommendations: 'Placeholder recommendation',
         },
         {
           id: 'I2',
