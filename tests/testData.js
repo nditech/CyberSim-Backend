@@ -563,8 +563,14 @@ const staticCurveballs = [
   {
     id: 'C4',
     description: 'Disaster',
-    budget_decrease: 1000,
-    poll_decrease: 10,
+    budget_change: -1000,
+    poll_change: -10,
+  },
+  {
+    id: 'C7',
+    description: 'Miracle',
+    budget_change: 1500,
+    poll_change: 10,
   },
 ];
 
