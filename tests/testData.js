@@ -828,7 +828,7 @@ const staticInjections = [
   },
   {
     id: 'I12',
-    title: 'Phising email - Facebook',
+    title: 'Phishing email - Facebook',
     description: 'Facebook password reset phishing email',
     trigger_time: 750000,
     location: 'hq',
@@ -937,7 +937,7 @@ const staticInjections = [
   },
   {
     id: 'I16',
-    title: 'Spreadsheet phising attempt',
+    title: 'Spreadsheet phishing attempt',
     description: 'Email received asking staff to download spreadsheet',
     trigger_time: 1020000,
     location: 'local',

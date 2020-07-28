@@ -122,7 +122,10 @@ const changeMitigation = async ({
         await db('game')
           .where({ id: gameId })
           .update({
-            budget: mitigationValue ? game.budget - cost : game.budget + cost,
+            budget: Math.max(
+              0,
+              mitigationValue ? game.budget - cost : game.budget + cost,
+            ),
           });
       }
       await db('game_mitigation')
@@ -301,7 +304,7 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
     if (cost) {
       await db('game')
         .where({ id: gameId })
-        .update({ budget: game.budget - cost });
+        .update({ budget: Math.max(0, game.budget - cost) });
     }
     // SET MITIGATIONS
     await Promise.all(
@@ -614,7 +617,7 @@ const performAction = async ({ gameId, actionId }) => {
     await db('game')
       .where({ id: gameId })
       .update({
-        budget: game.budget - cost + budgetIncrease,
+        budget: Math.max(0, game.budget - cost + budgetIncrease),
         poll: Math.min(game.poll + pollIncrease, 100),
       });
     await db('game_log').insert({
@@ -659,7 +662,7 @@ const performCurveball = async ({ gameId, curveballId }) => {
     await db('game')
       .where({ id: gameId })
       .update({
-        budget: game.budget + budgetChange,
+        budget: Math.max(0, game.budget + budgetChange),
         poll: Math.min(Math.max(game.poll + pollChange, 0), 100),
       });
 
