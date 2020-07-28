@@ -23,7 +23,7 @@ describe('Start Stimulation Function', () => {
 
     expect(game.paused).toBe(false);
     expect(game.state).toBe(GameStates.SIMULATION);
-    expect(game.started_at.getTime()).toBeLessThan(Date.now());
+    expect(game.started_at.getTime()).not.toBeNull();
   });
 
   test(`should log`, async () => {

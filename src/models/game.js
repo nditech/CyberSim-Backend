@@ -174,7 +174,7 @@ const startSimulation = async (gameId) => {
         started_at: db.fn.now(),
         paused: false,
         ...(state === GameStates.PREPARATION
-          ? { state: GameStates.SIMULATION }
+          ? { state: GameStates.SIMULATION, budget: 0 }
           : {}),
       });
     await db('game_log').insert({

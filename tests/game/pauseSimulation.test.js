@@ -4,8 +4,11 @@ const { pauseSimulation } = require('../../src/models/game');
 const { dumyGame } = require('../testData');
 const GameStates = require('../../src/constants/GameStates');
 
+const sleep = (m) => new Promise((r) => setTimeout(r, m));
+
 dumyGame.started_at = db.fn.now();
 dumyGame.state = GameStates.SIMULATION;
+dumyGame.paused = false;
 
 describe('Pause Simulation Function', () => {
   beforeAll(async () => {
@@ -21,19 +24,16 @@ describe('Pause Simulation Function', () => {
   const gameId = dumyGame.id;
 
   test('should change game state state', async () => {
+    await sleep(500);
     const {
       state,
       paused,
       millis_taken_before_started: millisTakenBeforeStarted,
-      started_at: startedAt,
     } = await pauseSimulation({ gameId });
-
-    const newMillisTakenBeforeStarted =
-      millisTakenBeforeStarted + (Date.now() - new Date(startedAt).getTime());
 
     expect(state).toBe(GameStates.SIMULATION);
     expect(paused).toBe(true);
-    expect(millisTakenBeforeStarted).toBeLessThan(newMillisTakenBeforeStarted);
+    expect(millisTakenBeforeStarted).toBeGreaterThan(0);
   });
 
   test('should log', async () => {
