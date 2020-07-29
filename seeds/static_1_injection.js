@@ -86,7 +86,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I7',
-          title: 'Spearphising message - HQ',
+          title: 'Spearphishing message - HQ',
           description:
             'Spearphishing message attack from personal email of national candidate',
           trigger_time: 480000,
@@ -101,7 +101,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I8',
-          title: 'Spearphising message - LB',
+          title: 'Spearphishing message - LB',
           description:
             'Spearphishing message attack from personal email of national candidate',
           trigger_time: 630000,
