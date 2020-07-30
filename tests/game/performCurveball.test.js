@@ -1,12 +1,12 @@
 const db = require('../../src/models/db');
 const { performCurveball } = require('../../src/models/game');
-const { dumyGame, staticCurveballs } = require('../testData');
+const { dummyGame, staticCurveballs } = require('../testData');
 const resetGameTables = require('../resetGameTables');
 
-describe('Perform Curveball Function', () => {
+describe('Perform Curveball', () => {
   beforeEach(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
+    await db('game').insert(dummyGame);
   });
 
   afterAll(async (done) => {
@@ -14,7 +14,7 @@ describe('Perform Curveball Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
+  const gameId = dummyGame.id;
   const negativeCurveballToPerform = staticCurveballs[0];
   const positiveCurveballToPerform = staticCurveballs[1];
 
@@ -33,9 +33,9 @@ describe('Perform Curveball Function', () => {
       .first();
 
     expect(gameLog).toBeTruthy();
-    expect(poll).toBe(dumyGame.poll + negativeCurveballToPerform.poll_change);
+    expect(poll).toBe(dummyGame.poll + negativeCurveballToPerform.poll_change);
     expect(budget).toBe(
-      dumyGame.budget + negativeCurveballToPerform.budget_change,
+      dummyGame.budget + negativeCurveballToPerform.budget_change,
     );
   });
 
@@ -54,9 +54,9 @@ describe('Perform Curveball Function', () => {
       .first();
 
     expect(gameLog).toBeTruthy();
-    expect(poll).toBe(dumyGame.poll + positiveCurveballToPerform.poll_change);
+    expect(poll).toBe(dummyGame.poll + positiveCurveballToPerform.poll_change);
     expect(budget).toBe(
-      dumyGame.budget + positiveCurveballToPerform.budget_change,
+      dummyGame.budget + positiveCurveballToPerform.budget_change,
     );
   });
 });

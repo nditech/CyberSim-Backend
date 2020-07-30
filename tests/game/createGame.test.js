@@ -2,13 +2,14 @@ const db = require('../../src/models/db');
 const { createGame } = require('../../src/models/game');
 const resetGameTables = require('../resetGameTables');
 const {
-  dumyGame,
-  dumyGameMitigations,
-  dumyGameSystems,
+  dummyGame,
+  dummyGameMitigations,
+  dummyGameSystems,
+  dummyGameInjections,
 } = require('../testData');
 
-describe('Create Game Function', () => {
-  beforeAll(async () => {
+describe('Create Game', () => {
+  beforeEach(async () => {
     await resetGameTables();
   });
 
@@ -17,18 +18,19 @@ describe('Create Game Function', () => {
     done();
   });
 
-  const { id: gameId } = dumyGame;
+  const { id: gameId } = dummyGame;
 
   test('should create required game tables', async () => {
     const game = await createGame(gameId);
-    expect(game).toMatchObject(dumyGame);
-    expect(game.mitigations).toMatchObject(dumyGameMitigations);
-    expect(game.systems).toMatchObject(dumyGameSystems);
-    expect(game.injections).toBeNull();
+    expect(game).toMatchObject(dummyGame);
+    expect(game.mitigations).toMatchObject(dummyGameMitigations);
+    expect(game.systems).toMatchObject(dummyGameSystems);
+    expect(game.injections).toMatchObject(dummyGameInjections);
     expect(game.logs).toBeNull();
   });
 
   test('should throw error on already existing game name', async () => {
+    await db('game').insert(dummyGame);
     await expect(createGame(gameId)).rejects.toThrow();
   });
 });

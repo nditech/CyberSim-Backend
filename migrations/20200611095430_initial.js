@@ -110,11 +110,6 @@ exports.up = async (knex) => {
     tbl.timestamp('started_at', { useTz: true });
     tbl.boolean('paused').notNullable().defaultTo(true);
     tbl.integer('millis_taken_before_started').notNullable().defaultTo(0);
-    tbl
-      .specificType('prevented_injections', 'text ARRAY')
-      .notNullable()
-      .defaultTo('{}');
-    tbl.boolean('every_injection_checked').notNullable().defaultTo(false);
   });
 
   // ONE game to MANY game_mitigation
@@ -147,13 +142,14 @@ exports.up = async (knex) => {
     tbl.string('injection_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
     tbl.specificType('correct_responses_made', 'text ARRAY');
+    tbl.boolean('prevented').notNullable().defaultTo(false);
     tbl.boolean('delivered').notNullable().defaultTo(false);
-    tbl.integer('delivered_at').notNullable().defaultTo(0); // game timer
-    tbl.integer('response_made_at').notNullable().defaultTo(0); // game timer
+    tbl.integer('delivered_at');
+    tbl.integer('response_made_at');
   });
 
   // ONE game to MANY game_log
-  // create logs based on these items, game_injection(.response_made_at), game.prevented_injections, game.preparation_mitigations,
+  // create logs based on these items, game_injection(.response_made_at), game.preparation_mitigations,
   await knex.schema.createTable('game_log', (tbl) => {
     tbl.increments('id');
     tbl.string('game_id').notNullable();

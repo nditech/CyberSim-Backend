@@ -1,13 +1,13 @@
 const db = require('../../src/models/db');
 const { performAction } = require('../../src/models/game');
-const { dumyGame, dumyGameSystems, staticActions } = require('../testData');
+const { dummyGame, dummyGameSystems, staticActions } = require('../testData');
 const resetGameTables = require('../resetGameTables');
 
-describe('Perform Action Function', () => {
+describe('Perform Action', () => {
   beforeEach(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
-    await db('game_system').insert(dumyGameSystems);
+    await db('game').insert(dummyGame);
+    await db('game_system').insert(dummyGameSystems);
   });
 
   afterAll(async (done) => {
@@ -15,7 +15,7 @@ describe('Perform Action Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
+  const gameId = dummyGame.id;
   const actionToPerorm = staticActions[0];
 
   test('should change budget and poll of game', async () => {
@@ -24,11 +24,11 @@ describe('Perform Action Function', () => {
       actionId: actionToPerorm.id,
     });
 
-    expect(poll).toBe(dumyGame.poll + actionToPerorm.poll_increase);
+    expect(poll).toBe(dummyGame.poll + actionToPerorm.poll_increase);
     expect(poll).toBeGreaterThanOrEqual(0);
     expect(poll).toBeLessThanOrEqual(100);
     expect(budget).toBe(
-      dumyGame.budget - actionToPerorm.cost + actionToPerorm.budget_increase,
+      dummyGame.budget - actionToPerorm.cost + actionToPerorm.budget_increase,
     );
   });
 
