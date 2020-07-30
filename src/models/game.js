@@ -349,28 +349,30 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
           mitigation_type: mitigationType,
           mitigation_id: mitigationId,
         }) => {
-          await db('game_mitigation')
-            .where({
-              game_id: gameId,
-              mitigation_id: mitigationId,
-              ...(mitigationType !== 'party'
-                ? { location: mitigationType }
-                : {}),
-            })
-            .update({ state: true });
-          await db('game_injection')
-            .where({ game_id: gameId, delivered: false, prevented: false })
-            .whereIn('injection_id', function findInjectionsToSkip() {
-              this.select('id')
-                .from('injection')
-                .where({
-                  skipper_mitigation: mitigationId,
-                  ...(mitigationType !== 'party'
-                    ? { skipper_mitigation_type: mitigationType }
-                    : {}),
-                });
-            })
-            .update({ prevented: true });
+          if (mitigationId) {
+            await db('game_mitigation')
+              .where({
+                game_id: gameId,
+                mitigation_id: mitigationId,
+                ...(mitigationType !== 'party'
+                  ? { location: mitigationType }
+                  : {}),
+              })
+              .update({ state: true });
+            await db('game_injection')
+              .where({ game_id: gameId, delivered: false, prevented: false })
+              .whereIn('injection_id', function findInjectionsToSkip() {
+                this.select('id')
+                  .from('injection')
+                  .where({
+                    skipper_mitigation: mitigationId,
+                    ...(mitigationType !== 'party'
+                      ? { skipper_mitigation_type: mitigationType }
+                      : {}),
+                  });
+              })
+              .update({ prevented: true });
+          }
         },
       ),
     );
