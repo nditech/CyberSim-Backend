@@ -51,4 +51,11 @@ $ npm start
   - **NODE_ENV**: Must be either `production`, `development` or `test`. If the given value is `test` the server will reset the Postgres Database on each restart.
   - **DB_URL**: The connection string for the Postgres Database which is the following: postgres://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
 
-- **RDS (aa1p6s0h1so0mf9)**: A Postgres Database is created to store the data for both staging and production environments The default name of the RDS database is **ebdb**.
+- **RDS (aa1p6s0h1so0mf9)**: A Postgres Database is created to store the data for both staging and production environments The default name of the RDS database is **ebdb**. This DB is only available for the EC2 instance running inside the EB environment. In order to connect to the DB from a different client, port forwarding must be configured. In order to create an ssh tunnel and forward the traffic from the DB to locahost run to following commands:
+
+```
+# Create the tunnel using ssh. Please note that you need the private key for this command.
+$ ssh -N  -L 5432:aa1p6s0h1so0mf9.cp0uibxnlhse.us-east-2.rds.amazonaws.com:5432 ec2-user@3.133.74.121 -i <PRIVATE_KEY>
+# Connect to the DB on localhost:5432
+$ psql -U cybersim --password -h 127.0.0.1 -p 5432
+```
