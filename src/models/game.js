@@ -144,7 +144,6 @@ const changeMitigation = async ({
             : {}),
         });
       if (game.state !== GameStates.PREPARATION) {
-        // TODO: test injection prevention
         await db('game_injection')
           .where({ game_id: gameId, delivered: false })
           .whereIn('injection_id', function findInjectionsToSkip() {
@@ -344,7 +343,6 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         .update({ budget: Math.max(0, game.budget - cost) });
     }
     // SET MITIGATIONS
-    // TODO: test prevent injections
     await Promise.all(
       responses.map(
         async ({
@@ -399,7 +397,6 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         .select('injection_to_prevent as injectionToPrevent')
         .where('injection_id', injectionId)
         .whereIn('response_id', responseIds);
-      // TODO: test injectionsToPrevent
       const injectionsToPrevent = injectionResponses.map(
         ({ injectionToPrevent }) => injectionToPrevent,
       );
