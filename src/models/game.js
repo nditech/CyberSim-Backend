@@ -284,9 +284,13 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
 };
 
 // Use for respond to injection and restore system
-const makeResponses = async ({ responseIds, gameId, injectionId }) => {
+const makeResponses = async ({
+  responseIds,
+  gameId,
+  injectionId,
+  customResponse,
+}) => {
   try {
-    const responses = await getResponsesById(responseIds);
     const game = await db('game')
       .select(
         'game.id',
@@ -301,96 +305,99 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
         `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
       )
       .first();
-    const gameMitigations = game.mitigations.reduce(
-      (mitigationsAcc, { mitigation_id: mitigationId, location, state }) => ({
-        ...mitigationsAcc,
-        [`${mitigationId}_${location}`]: state,
-      }),
-      {},
-    );
-    // CHECK REQUIRED MITIGATION
-    responses.forEach(
-      ({
-        required_mitigation_type: requiredMitigationType,
-        required_mitigation: requiredMitigation,
-      }) => {
-        if (
-          requiredMitigationType &&
-          requiredMitigation &&
-          !(requiredMitigationType === 'party'
-            ? gameMitigations[`${requiredMitigation}_hq`] &&
-              gameMitigations[`${requiredMitigation}_local`]
-            : gameMitigations[
-                `${requiredMitigation}_${requiredMitigationType}`
-              ])
-        ) {
-          throw new Error('Response not allowed');
-        }
-      },
-    );
-    // CHECK AVAILABLE BUDGET
-    const cost = responses.reduce(
-      (acc, { cost: responseCost }) => acc + responseCost,
-      0,
-    );
-    if (game.budget < cost) {
-      throw new Error('Not enough budget');
-    }
-    // ALLOCATE BUDGET
-    if (cost) {
-      await db('game')
-        .where({ id: gameId })
-        .update({ budget: Math.max(0, game.budget - cost) });
-    }
-    // SET MITIGATIONS
-    await Promise.all(
-      responses.map(
-        async ({
-          mitigation_type: mitigationType,
-          mitigation_id: mitigationId,
+    if (responseIds?.length) {
+      const responses = await getResponsesById(responseIds);
+      const gameMitigations = game.mitigations.reduce(
+        (mitigationsAcc, { mitigation_id: mitigationId, location, state }) => ({
+          ...mitigationsAcc,
+          [`${mitigationId}_${location}`]: state,
+        }),
+        {},
+      );
+      // CHECK REQUIRED MITIGATION
+      responses.forEach(
+        ({
+          required_mitigation_type: requiredMitigationType,
+          required_mitigation: requiredMitigation,
         }) => {
-          if (mitigationId) {
-            await db('game_mitigation')
-              .where({
-                game_id: gameId,
-                mitigation_id: mitigationId,
-                ...(mitigationType !== 'party'
-                  ? { location: mitigationType }
-                  : {}),
-              })
-              .update({ state: true });
-            await db('game_injection')
-              .where({ game_id: gameId, delivered: false, prevented: false })
-              .whereIn('injection_id', function findInjectionsToSkip() {
-                this.select('id')
-                  .from('injection')
-                  .where({
-                    skipper_mitigation: mitigationId,
-                    ...(mitigationType !== 'party'
-                      ? { skipper_mitigation_type: mitigationType }
-                      : {}),
-                  });
-              })
-              .update({ prevented: true });
+          if (
+            requiredMitigationType &&
+            requiredMitigation &&
+            !(requiredMitigationType === 'party'
+              ? gameMitigations[`${requiredMitigation}_hq`] &&
+                gameMitigations[`${requiredMitigation}_local`]
+              : gameMitigations[
+                  `${requiredMitigation}_${requiredMitigationType}`
+                ])
+          ) {
+            throw new Error('Response not allowed');
           }
         },
-      ),
-    );
-    // SET SYSTEMS
-    const systemIdsToRestore = responses.reduce(
-      (acc, { systems_to_restore: systemsToRestore }) => {
-        if (systemsToRestore && systemsToRestore.length) {
-          return [...acc, ...systemsToRestore];
-        }
-        return acc;
-      },
-      [],
-    );
-    if (systemIdsToRestore.length !== 0) {
-      await db('game_system')
-        .where({ game_id: gameId })
-        .whereIn('system_id', systemIdsToRestore)
-        .update({ state: true });
+      );
+      // CHECK AVAILABLE BUDGET
+      const cost = responses.reduce(
+        (acc, { cost: responseCost }) => acc + responseCost,
+        0,
+      );
+      if (game.budget < cost) {
+        throw new Error('Not enough budget');
+      }
+      // ALLOCATE BUDGET
+      if (cost) {
+        await db('game')
+          .where({ id: gameId })
+          .update({ budget: Math.max(0, game.budget - cost) });
+      }
+      // SET MITIGATIONS
+      await Promise.all(
+        responses.map(
+          async ({
+            mitigation_type: mitigationType,
+            mitigation_id: mitigationId,
+          }) => {
+            if (mitigationId) {
+              await db('game_mitigation')
+                .where({
+                  game_id: gameId,
+                  mitigation_id: mitigationId,
+                  ...(mitigationType !== 'party'
+                    ? { location: mitigationType }
+                    : {}),
+                })
+                .update({ state: true });
+              await db('game_injection')
+                .where({ game_id: gameId, delivered: false, prevented: false })
+                .whereIn('injection_id', function findInjectionsToSkip() {
+                  this.select('id')
+                    .from('injection')
+                    .where({
+                      skipper_mitigation: mitigationId,
+                      ...(mitigationType !== 'party'
+                        ? { skipper_mitigation_type: mitigationType }
+                        : {}),
+                    });
+                })
+                .update({ prevented: true });
+            }
+          },
+        ),
+      );
+      // SET SYSTEMS
+      const systemIdsToRestore = responses.reduce(
+        (acc, { systems_to_restore: systemsToRestore }) => {
+          if (systemsToRestore && systemsToRestore.length) {
+            return [...acc, ...systemsToRestore];
+          }
+          return acc;
+        },
+        [],
+      );
+      if (systemIdsToRestore.length !== 0) {
+        await db('game_system')
+          .where({ game_id: gameId })
+          .whereIn('system_id', systemIdsToRestore)
+          .update({ state: true });
+      }
     }
     const timeTaken = getTimeTaken(game);
     // SET GAME INJECTION
@@ -416,8 +423,12 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
           injection_id: injectionId,
         })
         .update({
-          correct_responses_made: responseIds,
+          ...(responseIds?.length
+            ? { predefined_responses_made: responseIds }
+            : {}),
+          is_response_correct: true,
           response_made_at: timeTaken,
+          ...(customResponse ? { custom_response: customResponse } : {}),
         });
     } else {
       await db('game_log').insert({
@@ -484,7 +495,11 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
   return getGame(gameId);
 };
 
-const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
+const makeNonCorrectInjectionResponse = async ({
+  gameId,
+  injectionId,
+  customResponse,
+}) => {
   try {
     const game = await db('game')
       .select(
@@ -501,6 +516,7 @@ const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
       })
       .update({
         response_made_at: getTimeTaken(game),
+        ...(customResponse ? { custom_response: customResponse } : {}),
       });
   } catch (error) {
     logger.error('makeNonCorrectInjectionResponse ERROR: %s', error);

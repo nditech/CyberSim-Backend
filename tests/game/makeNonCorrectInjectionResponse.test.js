@@ -41,4 +41,22 @@ describe('Make Non Correct Injection Response', () => {
     expect(responseMadeAt).toBeGreaterThan(dateBeforeTest);
     expect(responseMadeAt).toBeLessThan(dateAfterTest);
   });
+
+  test('should update custom response', async () => {
+    await makeNonCorrectInjectionResponse({
+      gameId,
+      injectionId,
+      customResponse: 'ASDFGH',
+    });
+
+    const { customResponse } = await db('game_injection')
+      .select('custom_response as customResponse')
+      .where({
+        game_id: gameId,
+        injection_id: injectionId,
+      })
+      .first();
+
+    expect(customResponse).toEqual('ASDFGH');
+  });
 });

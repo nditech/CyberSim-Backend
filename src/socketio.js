@@ -156,16 +156,17 @@ module.exports = (http) => {
 
     socket.on(
       SocketEvents.RESPONDTOINJECTION,
-      async ({ injectionId, responseIds }, callback) => {
+      async ({ injectionId, responseIds, customResponse }, callback) => {
         logger.info(
           'RESPONDTOINJECTION: %s',
-          JSON.stringify({ gameId, injectionId, responseIds }),
+          JSON.stringify({ gameId, injectionId, responseIds, customResponse }),
         );
         try {
           const game = await makeResponses({
             gameId,
             injectionId,
             responseIds,
+            customResponse,
           });
           io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
           callback({ game });
@@ -177,15 +178,16 @@ module.exports = (http) => {
 
     socket.on(
       SocketEvents.NONCORRECTRESPONDTOINJECTION,
-      async ({ injectionId }, callback) => {
+      async ({ injectionId, customResponse }, callback) => {
         logger.info(
           'NONCORRECTRESPONDTOINJECTION: %s',
-          JSON.stringify({ gameId, injectionId }),
+          JSON.stringify({ gameId, injectionId, customResponse }),
         );
         try {
           const game = await makeNonCorrectInjectionResponse({
             gameId,
             injectionId,
+            customResponse,
           });
           io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
           callback({ game });

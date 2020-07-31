@@ -114,7 +114,7 @@ describe('Make Responses', () => {
     });
   });
 
-  test('should update prevented injections based on response', async () => {
+  test('should update prevented injections based on follow up', async () => {
     const { followupInjecion } = await db('injection')
       .select('followup_injecion as followupInjecion')
       .where({ id: 'I1' })
@@ -126,6 +126,30 @@ describe('Make Responses', () => {
 
     await makeResponses({
       responseIds: ['RP1'],
+      gameId: dummyGame.id,
+      injectionId: 'I1',
+    });
+
+    const preventedInjection = await db('game_injection')
+      .select('id')
+      .where({
+        prevented: true,
+        game_id: dummyGame.id,
+        injection_id: followupInjecion,
+      })
+      .first();
+
+    expect(preventedInjection).toBeTruthy();
+  });
+
+  test('should update prevented injections based on follow up when response is custom correct', async () => {
+    const { followupInjecion } = await db('injection')
+      .select('followup_injecion as followupInjecion')
+      .where({ id: 'I1' })
+      .first();
+
+    await makeResponses({
+      customResponse: 'ASDFGH',
       gameId: dummyGame.id,
       injectionId: 'I1',
     });
@@ -174,7 +198,26 @@ describe('Make Responses', () => {
           injection.injection_id === 'I2' && injection.game_id === dummyGame.id,
       ),
     ).toMatchObject({
-      correct_responses_made: ['RP2'],
+      predefined_responses_made: ['RP2'],
+      is_response_correct: true,
+    });
+  });
+
+  test('should update game_injection with custom response', async () => {
+    const { injections } = await makeResponses({
+      customResponse: 'ASDFGH',
+      gameId: dummyGame.id,
+      injectionId: 'I2',
+    });
+
+    expect(
+      injections.find(
+        (injection) =>
+          injection.injection_id === 'I2' && injection.game_id === dummyGame.id,
+      ),
+    ).toMatchObject({
+      custom_response: 'ASDFGH',
+      is_response_correct: true,
     });
   });
 

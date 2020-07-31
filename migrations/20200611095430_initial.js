@@ -142,7 +142,9 @@ exports.up = async (knex) => {
     tbl.foreign('game_id').references('id').inTable('game');
     tbl.string('injection_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
-    tbl.specificType('correct_responses_made', 'text ARRAY');
+    tbl.specificType('predefined_responses_made', 'text ARRAY');
+    tbl.boolean('is_response_correct');
+    tbl.string('custom_response');
     tbl.boolean('prevented').notNullable().defaultTo(false);
     tbl.boolean('delivered').notNullable().defaultTo(false);
     tbl.integer('delivered_at');
