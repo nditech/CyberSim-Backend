@@ -16,7 +16,7 @@ exports.seed = (knex) =>
           systems_to_disable: [],
           skipper_mitigation: null,
           recommendations: 'Placeholder recommendation',
-          followup_injecion: 'I34',
+          followup_injecion: 'I33',
         },
         {
           id: 'I2',
