@@ -588,16 +588,19 @@ const performCurveball = async ({ gameId, curveballId }) => {
       .where({ id: gameId })
       .first();
 
-    const { budget_change: budgetChange, poll_change: pollChange } = await db(
-      'curveball',
-    )
+    const { budgetChange, pollChange, loseAllBudget } = await db('curveball')
+      .select(
+        'lose_all_budget as loseAllBudget',
+        'budget_change as budgetChange',
+        'poll_change as pollChange',
+      )
       .where({ id: curveballId })
       .first();
 
     await db('game')
       .where({ id: gameId })
       .update({
-        budget: Math.max(0, game.budget + budgetChange),
+        budget: loseAllBudget ? 0 : Math.max(0, game.budget + budgetChange),
         poll: Math.min(Math.max(game.poll + pollChange, 0), 100),
       });
 

@@ -86,6 +86,7 @@ exports.up = async (knex) => {
   await knex.schema.createTable('curveball', (tbl) => {
     tbl.string('id').primary().notNullable();
     tbl.string('description').notNullable();
+    tbl.boolean('lose_all_budget').notNullable().defaultTo(false);
     tbl.integer('budget_change').notNullable().defaultTo(0);
     tbl.decimal('poll_change').notNullable().defaultTo(0);
   });

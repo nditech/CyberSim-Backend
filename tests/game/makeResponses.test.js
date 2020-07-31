@@ -1,4 +1,5 @@
 const db = require('../../src/models/db');
+const { getResponsesById } = require('../../src/models/response');
 const resetGameTables = require('../resetGameTables');
 const GameStates = require('../../src/constants/GameStates');
 const { makeResponses } = require('../../src/models/game');
@@ -35,7 +36,7 @@ describe('Make Responses', () => {
     ).rejects.toThrow(/Response not allowed/);
   });
 
-  test.only('should throw if budget is not enough', async () => {
+  test('should throw if budget is not enough', async () => {
     await db('game').where({ id: dummyGame.id }).update({ budget: 0 });
 
     await expect(
@@ -53,10 +54,7 @@ describe('Make Responses', () => {
       .where({ id: dummyGame.id })
       .first();
 
-    const { cost: responseCost } = await db('response')
-      .select('cost')
-      .where({ id: 'RP2' })
-      .first();
+    const [{ cost: responseCost }] = await getResponsesById(['RP2']);
 
     const { budget: newBudget } = await makeResponses({
       responseIds: ['RP2'],

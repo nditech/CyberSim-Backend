@@ -108,6 +108,11 @@ const staticCurveballs = [
     budget_change: 1500,
     poll_change: 10,
   },
+  {
+    id: 'C8',
+    description: 'Oh My God',
+    lose_all_budget: true,
+  },
 ];
 
 const staticInjections = [

@@ -31,7 +31,7 @@ describe('Start Stimulation', () => {
     expect(game.started_at.getTime()).not.toBeNull();
   });
 
-  test.only(`should prevent injections if game state was preparation`, async () => {
+  test(`should prevent injections if game state was preparation`, async () => {
     await db('game_mitigation')
       .where({ game_id: gameId })
       .update({ state: true, preparation: true });
