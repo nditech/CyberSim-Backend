@@ -1,21 +1,24 @@
 const db = require('../../src/models/db');
+const { getResponsesById } = require('../../src/models/response');
 const resetGameTables = require('../resetGameTables');
 const GameStates = require('../../src/constants/GameStates');
 const { makeResponses } = require('../../src/models/game');
 const {
-  dumyGame,
-  dumyGameMitigations,
-  dumyGameSystems,
+  dummyGame,
+  dummyGameMitigations,
+  dummyGameSystems,
+  dummyGameInjections,
 } = require('../testData');
 
-describe('Inject Games Function', () => {
-  dumyGame.state = GameStates.SIMULATION;
+describe('Make Responses', () => {
+  dummyGame.state = GameStates.SIMULATION;
 
   beforeEach(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
-    await db('game_mitigation').insert(dumyGameMitigations);
-    await db('game_system').insert(dumyGameSystems);
+    await db('game').insert(dummyGame);
+    await db('game_mitigation').insert(dummyGameMitigations);
+    await db('game_system').insert(dummyGameSystems);
+    await db('game_injection').insert(dummyGameInjections);
   });
 
   afterAll(async (done) => {
@@ -26,53 +29,55 @@ describe('Inject Games Function', () => {
   test('should throw if required mitigation is down', async () => {
     await expect(
       makeResponses({
-        responseIds: ['RP13'],
-        gameId: dumyGame.id,
-        injectionId: 'I25',
+        responseIds: ['RP1'],
+        gameId: dummyGame.id,
+        injectionId: 'I1',
       }),
     ).rejects.toThrow(/Response not allowed/);
   });
 
   test('should throw if budget is not enough', async () => {
-    await db('game').where({ id: dumyGame.id }).update({ budget: 0 });
+    await db('game').where({ id: dummyGame.id }).update({ budget: 0 });
 
     await expect(
       makeResponses({
-        responseIds: ['RP6'],
-        gameId: dumyGame.id,
-        injectionId: 'I11',
+        responseIds: ['RP2'],
+        gameId: dummyGame.id,
+        injectionId: 'I2',
       }),
     ).rejects.toThrow(/Not enough budget/);
   });
 
   test('should reduce budget by cost', async () => {
     const { budget: oldBudget } = await db('game')
-      .where({ id: dumyGame.id })
+      .select('budget')
+      .where({ id: dummyGame.id })
       .first();
 
-    const { cost: responseCost } = await db('response')
-      .where({ id: 'RP6' })
-      .first();
+    const [{ cost: responseCost }] = await getResponsesById(['RP2']);
 
     const { budget: newBudget } = await makeResponses({
-      responseIds: ['RP6'],
-      gameId: dumyGame.id,
-      injectionId: 'I11',
+      responseIds: ['RP2'],
+      gameId: dummyGame.id,
+      injectionId: 'I2',
     });
 
     expect(newBudget).toBe(oldBudget - responseCost);
   });
 
   test('should set game mitigation state true', async () => {
-    const {
-      mitigation_type: mitigationType,
-      mitigation_id: mitigationId,
-    } = await db('response').where({ id: 'RP8' }).first();
+    const { mitigationType, mitigationId } = await db('response')
+      .select(
+        'mitigation_type as mitigationType',
+        'mitigation_id as mitigationId',
+      )
+      .where({ id: 'RP2' })
+      .first();
 
     const { mitigations } = await makeResponses({
-      responseIds: ['RP8'],
-      gameId: dumyGame.id,
-      injectionId: 'I14',
+      responseIds: ['RP2'],
+      gameId: dummyGame.id,
+      injectionId: 'I2',
     });
 
     expect(
@@ -85,18 +90,23 @@ describe('Inject Games Function', () => {
   });
 
   test('should restore systems', async () => {
-    const { systems_to_restore: systemsToRestore } = await db('response')
-      .where({ id: 'RP17' })
+    const { systemsToRestore } = await db('response')
+      .select('systems_to_restore as systemsToRestore')
+      .where({ id: 'RP1' })
       .first();
+
+    await db('game_mitigation')
+      .where({ game_id: dummyGame.id, mitigation_id: 'M1', location: 'local' })
+      .update({ state: true });
 
     await db('game_system')
       .whereIn('system_id', systemsToRestore)
       .update({ state: false });
 
     const { systems } = await makeResponses({
-      responseIds: ['RP17'],
-      gameId: dumyGame.id,
-      injectionId: 'I36',
+      responseIds: ['RP1'],
+      gameId: dummyGame.id,
+      injectionId: 'I1',
     });
 
     systems.forEach((system) => {
@@ -104,65 +114,126 @@ describe('Inject Games Function', () => {
     });
   });
 
-  test('should update prevented injections', async () => {
-    await db('game_injection').insert({
-      injection_id: 'I1',
-      game_id: dumyGame.id,
-    });
-
-    const { injection_to_prevent: injectionToPrevent } = await db(
-      'injection_response',
-    )
-      .where({ response_id: 'RP1', injection_id: 'I1' })
+  test('should update prevented injections based on follow up', async () => {
+    const { followupInjecion } = await db('injection')
+      .select('followup_injecion as followupInjecion')
+      .where({ id: 'I1' })
       .first();
 
-    const { prevented_injections: preventedInjections } = await makeResponses({
+    await db('game_mitigation')
+      .where({ game_id: dummyGame.id, mitigation_id: 'M1', location: 'local' })
+      .update({ state: true });
+
+    await makeResponses({
       responseIds: ['RP1'],
-      gameId: dumyGame.id,
+      gameId: dummyGame.id,
       injectionId: 'I1',
     });
 
-    expect(preventedInjections).toEqual(
-      expect.arrayContaining([injectionToPrevent]),
-    );
+    const preventedInjection = await db('game_injection')
+      .select('id')
+      .where({
+        prevented: true,
+        game_id: dummyGame.id,
+        injection_id: followupInjecion,
+      })
+      .first();
+
+    expect(preventedInjection).toBeTruthy();
   });
 
-  test('should update game_injection table', async () => {
-    await db('game_injection').insert({
-      injection_id: 'I1',
-      game_id: dumyGame.id,
+  test('should update prevented injections based on follow up when response is custom correct', async () => {
+    const { followupInjecion } = await db('injection')
+      .select('followup_injecion as followupInjecion')
+      .where({ id: 'I1' })
+      .first();
+
+    await makeResponses({
+      customResponse: 'ASDFGH',
+      gameId: dummyGame.id,
+      injectionId: 'I1',
     });
 
+    const preventedInjection = await db('game_injection')
+      .select('id')
+      .where({
+        prevented: true,
+        game_id: dummyGame.id,
+        injection_id: followupInjecion,
+      })
+      .first();
+
+    expect(preventedInjection).toBeTruthy();
+  });
+
+  test('should update prevented injections based on mitigations added', async () => {
+    await makeResponses({
+      responseIds: ['RP2'],
+      gameId: dummyGame.id,
+      injectionId: 'I2',
+    });
+
+    const preventedInjection = await db('game_injection')
+      .select('id')
+      .where({
+        prevented: true,
+        game_id: dummyGame.id,
+        injection_id: 'I3',
+      })
+      .first();
+
+    expect(preventedInjection).toBeTruthy();
+  });
+
+  test('should update game_injection table with response', async () => {
     const { injections } = await makeResponses({
-      responseIds: ['RP1'],
-      gameId: dumyGame.id,
-      injectionId: 'I1',
+      responseIds: ['RP2'],
+      gameId: dummyGame.id,
+      injectionId: 'I2',
     });
 
     expect(
       injections.find(
         (injection) =>
-          injection.injection_id === 'I1' && injection.game_id === dumyGame.id,
+          injection.injection_id === 'I2' && injection.game_id === dummyGame.id,
       ),
     ).toMatchObject({
-      correct_responses_made: ['RP1'],
+      predefined_responses_made: ['RP2'],
+      is_response_correct: true,
+    });
+  });
+
+  test('should update game_injection with custom response', async () => {
+    const { injections } = await makeResponses({
+      customResponse: 'ASDFGH',
+      gameId: dummyGame.id,
+      injectionId: 'I2',
+    });
+
+    expect(
+      injections.find(
+        (injection) =>
+          injection.injection_id === 'I2' && injection.game_id === dummyGame.id,
+      ),
+    ).toMatchObject({
+      custom_response: 'ASDFGH',
+      is_response_correct: true,
     });
   });
 
   test('should log on system restore action', async () => {
-    await db('game_injection').insert({
-      injection_id: 'I1',
-      game_id: dumyGame.id,
-    });
+    await db('game_mitigation')
+      .where({ game_id: dummyGame.id, mitigation_id: 'M1', location: 'local' })
+      .update({ state: true });
 
     await makeResponses({
       responseIds: ['RP1'],
-      gameId: dumyGame.id,
+      gameId: dummyGame.id,
     });
 
     const gameLog = await db('game_log')
       .where({
-        game_id: dumyGame.id,
+        game_id: dummyGame.id,
         type: 'System Restore Action',
         response_id: 'RP1',
       })

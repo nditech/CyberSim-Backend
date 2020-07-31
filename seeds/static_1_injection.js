@@ -16,6 +16,7 @@ exports.seed = (knex) =>
           systems_to_disable: [],
           skipper_mitigation: null,
           recommendations: 'Placeholder recommendation',
+          followup_injecion: 'I33',
         },
         {
           id: 'I2',
@@ -56,6 +57,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I27',
         },
         {
           id: 'I5',
@@ -70,6 +72,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I59',
         },
         {
           id: 'I6',
@@ -98,6 +101,7 @@ exports.seed = (knex) =>
           systems_to_disable: [],
           skipper_mitigation: 'M14',
           skipper_mitigation_type: 'hq',
+          followup_injecion: 'I23',
         },
         {
           id: 'I8',
@@ -113,6 +117,7 @@ exports.seed = (knex) =>
           systems_to_disable: [],
           skipper_mitigation: 'M14',
           skipper_mitigation_type: 'hq',
+          followup_injecion: 'I24',
         },
         {
           id: 'I9',
@@ -126,6 +131,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I20',
         },
         {
           id: 'I10',
@@ -168,6 +174,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I14',
         },
         {
           id: 'I13',
@@ -182,6 +189,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I50',
         },
         {
           id: 'I14',
@@ -222,6 +230,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I25',
         },
         {
           id: 'I17',
@@ -248,6 +257,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I30',
         },
         {
           id: 'I19',
@@ -261,6 +271,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I31',
         },
         {
           id: 'I20',
@@ -304,6 +315,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I40',
         },
         {
           id: 'I23',
@@ -362,6 +374,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I51',
         },
         {
           id: 'I27',
@@ -479,6 +492,7 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
+          followup_injecion: 'I36',
         },
         {
           id: 'I35',

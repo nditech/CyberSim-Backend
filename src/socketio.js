@@ -1,5 +1,4 @@
 const socketio = require('socket.io');
-const cron = require('node-cron');
 
 const SocketEvents = require('./constants/SocketEvents');
 const logger = require('./logger');
@@ -11,7 +10,6 @@ const {
   startSimulation,
   pauseSimulation,
   makeResponses,
-  injectGames,
   deliverGameInjection,
   makeNonCorrectInjectionResponse,
   performCurveball,
@@ -19,20 +17,6 @@ const {
 
 module.exports = (http) => {
   const io = socketio(http);
-
-  // Check game injections every 5 seconds
-  let injectionInProgress = false;
-  cron.schedule('*/5 * * * * *', async () => {
-    if (injectionInProgress) {
-      return;
-    }
-    injectionInProgress = true;
-    const games = await injectGames();
-    injectionInProgress = false;
-    games.forEach((game) => {
-      io.in(game.id).emit(SocketEvents.GAMEUPDATED, game);
-    });
-  });
 
   io.on(SocketEvents.CONNECT, (socket) => {
     logger.info('Facilitator CONNECT');
@@ -172,16 +156,17 @@ module.exports = (http) => {
 
     socket.on(
       SocketEvents.RESPONDTOINJECTION,
-      async ({ injectionId, responseIds }, callback) => {
+      async ({ injectionId, responseIds, customResponse }, callback) => {
         logger.info(
           'RESPONDTOINJECTION: %s',
-          JSON.stringify({ gameId, injectionId, responseIds }),
+          JSON.stringify({ gameId, injectionId, responseIds, customResponse }),
         );
         try {
           const game = await makeResponses({
             gameId,
             injectionId,
             responseIds,
+            customResponse,
           });
           io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
           callback({ game });
@@ -193,15 +178,16 @@ module.exports = (http) => {
 
     socket.on(
       SocketEvents.NONCORRECTRESPONDTOINJECTION,
-      async ({ injectionId }, callback) => {
+      async ({ injectionId, customResponse }, callback) => {
         logger.info(
           'NONCORRECTRESPONDTOINJECTION: %s',
-          JSON.stringify({ gameId, injectionId }),
+          JSON.stringify({ gameId, injectionId, customResponse }),
         );
         try {
           const game = await makeNonCorrectInjectionResponse({
             gameId,
             injectionId,
+            customResponse,
           });
           io.in(gameId).emit(SocketEvents.GAMEUPDATED, game);
           callback({ game });

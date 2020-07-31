@@ -1,14 +1,19 @@
 const db = require('../../src/models/db');
 const resetGameTables = require('../resetGameTables');
 const { changeMitigation } = require('../../src/models/game');
-const { dumyGame, dumyGameMitigations } = require('../testData');
+const {
+  dummyGame,
+  dummyGameMitigations,
+  dummyGameInjections,
+} = require('../testData');
 const GameStates = require('../../src/constants/GameStates');
 
-describe('Change Mitigation Function', () => {
+describe('Change Mitigation', () => {
   beforeEach(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
-    await db('game_mitigation').insert(dumyGameMitigations);
+    await db('game').insert(dummyGame);
+    await db('game_mitigation').insert(dummyGameMitigations);
+    await db('game_injection').insert(dummyGameInjections);
   });
 
   afterAll(async (done) => {
@@ -16,7 +21,7 @@ describe('Change Mitigation Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
+  const gameId = dummyGame.id;
 
   test('should change mitigation state', async () => {
     const {
@@ -24,7 +29,7 @@ describe('Change Mitigation Function', () => {
       state,
       location,
       id,
-    } = dumyGameMitigations[0];
+    } = dummyGameMitigations[0];
 
     const { mitigations } = await changeMitigation({
       mitigationId,
@@ -43,18 +48,19 @@ describe('Change Mitigation Function', () => {
   test('should reduce game budget by mitigation cost', async () => {
     const { budget } = await db('game')
       .select('budget')
-      .where({ 'game.id': gameId })
+      .where({ id: gameId })
       .first();
 
     const {
       mitigation_id: mitigationId,
       state,
       location,
-    } = dumyGameMitigations[0];
+    } = dummyGameMitigations[0];
 
-    const [{ cost }] = await db('mitigation')
+    const { cost } = await db('mitigation')
       .select(`${location}_cost as cost`)
-      .where({ id: mitigationId });
+      .where({ id: mitigationId })
+      .first();
 
     const { budget: newBudget } = await changeMitigation({
       mitigationId,
@@ -69,10 +75,10 @@ describe('Change Mitigation Function', () => {
   test('should not reduce game budget if mitigation value is false', async () => {
     const { budget } = await db('game')
       .select('budget')
-      .where({ 'game.id': gameId })
+      .where({ id: gameId })
       .first();
 
-    const { mitigation_id: mitigationId, location } = dumyGameMitigations[0];
+    const { mitigation_id: mitigationId, location } = dummyGameMitigations[0];
 
     const { budget: newBudget } = await changeMitigation({
       mitigationId,
@@ -84,16 +90,45 @@ describe('Change Mitigation Function', () => {
     expect(budget).toBe(newBudget);
   });
 
-  test(`should log if game state is not ${GameStates.PREPARATION}`, async () => {
+  test(`should skip injections if game state is not ${GameStates.PREPARATION}`, async () => {
     await db('game')
-      .where({ 'game.id': gameId })
+      .where({ id: gameId })
       .update({ state: GameStates.SIMULATION });
 
     const {
       mitigation_id: mitigationId,
       location,
       state,
-    } = dumyGameMitigations[0];
+    } = dummyGameMitigations[0];
+
+    await changeMitigation({
+      mitigationId,
+      mitigationType: location,
+      mitigationValue: !state,
+      gameId,
+    });
+
+    const gameInjection = await db('game_injection')
+      .where({
+        game_id: gameId,
+        injection_id: 'I1',
+        prevented: true,
+      })
+      .first();
+
+    expect(gameInjection).toBeTruthy();
+  });
+
+  test(`should log if game state is not ${GameStates.PREPARATION}`, async () => {
+    await db('game')
+      .where({ id: gameId })
+      .update({ state: GameStates.SIMULATION });
+
+    const {
+      mitigation_id: mitigationId,
+      location,
+      state,
+    } = dummyGameMitigations[0];
 
     await changeMitigation({
       mitigationId,
@@ -121,7 +156,7 @@ describe('Change Mitigation Function', () => {
       mitigation_id: mitigationId,
       state,
       location,
-    } = dumyGameMitigations[0];
+    } = dummyGameMitigations[0];
 
     await expect(
       changeMitigation({

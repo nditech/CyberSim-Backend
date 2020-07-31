@@ -14,8 +14,6 @@ const getGame = (id) =>
       'game.started_at',
       'game.paused',
       'game.millis_taken_before_started',
-      'game.prevented_injections',
-      'game.every_injection_checked',
       'i.injections',
       'm.mitigations',
       's.systems',
@@ -43,38 +41,46 @@ const createGame = async (id) => {
     },
     ['id'],
   );
-  const systems = await db('system');
+  const systems = await db('system').select('id as systemId');
   await db('game_system').insert(
-    systems.map(({ id: systemId }) => ({
+    systems.map(({ systemId }) => ({
       game_id: id,
       system_id: systemId,
       state: true,
     })),
   );
-  const mitigations = await db('mitigation');
+  const mitigations = await db('mitigation').select(
+    'id as mitigationId',
+    'is_hq as isHq',
+    'is_local as isLocal',
+  );
   await db('game_mitigation').insert(
-    mitigations.reduce(
-      (acc, { id: mitigationId, is_hq: isHq, is_local: isLocal }) => {
-        if (isHq) {
-          acc.push({
-            game_id: id,
-            mitigation_id: mitigationId,
-            location: 'hq',
-            state: false,
-          });
-        }
-        if (isLocal) {
-          acc.push({
-            game_id: id,
-            mitigation_id: mitigationId,
-            location: 'local',
-            state: false,
-          });
-        }
-        return acc;
-      },
-      [],
-    ),
+    mitigations.reduce((acc, { mitigationId, isHq, isLocal }) => {
+      if (isHq) {
+        acc.push({
+          game_id: id,
+          mitigation_id: mitigationId,
+          location: 'hq',
+          state: false,
+        });
+      }
+      if (isLocal) {
+        acc.push({
+          game_id: id,
+          mitigation_id: mitigationId,
+          location: 'local',
+          state: false,
+        });
+      }
+      return acc;
+    }, []),
+  );
+  const injections = await db('injection').select('id as injecionId');
+  await db('game_injection').insert(
+    injections.map(({ injecionId }) => ({
+      game_id: id,
+      injection_id: injecionId,
+    })),
   );
   return getGame(id);
 };
@@ -90,11 +96,11 @@ const changeMitigation = async ({
       .select(
         'budget',
         'state',
-        'started_at',
+        'started_at as startedAt',
         'paused',
-        'millis_taken_before_started',
+        'millis_taken_before_started as millisTakenBeforeStarted',
       )
-      .where({ 'game.id': gameId })
+      .where({ id: gameId })
       .first();
 
     const { gameMitigationValue, gameMitigationId } = await db(
@@ -112,9 +118,10 @@ const changeMitigation = async ({
       .first();
 
     if (gameMitigationValue !== mitigationValue) {
-      const [{ cost }] = await db('mitigation')
+      const { cost } = await db('mitigation')
         .select(`${mitigationType}_cost as cost`)
-        .where({ id: mitigationId });
+        .where({ id: mitigationId })
+        .first();
       if (cost) {
         if (mitigationValue && game.budget < cost) {
           throw new Error('Not enough budget');
@@ -137,6 +144,15 @@ const changeMitigation = async ({
             : {}),
         });
       if (game.state !== GameStates.PREPARATION) {
+        await db('game_injection')
+          .where({ game_id: gameId, delivered: false })
+          .whereIn('injection_id', function findInjectionsToSkip() {
+            this.select('id').from('injection').where({
+              skipper_mitigation: mitigationId,
+              skipper_mitigation_type: mitigationType,
+            });
+          })
+          .update({ prevented: true });
         await db('game_log').insert({
           game_id: gameId,
           game_timer: getTimeTaken(game),
@@ -156,16 +172,13 @@ const changeMitigation = async ({
   return getGame(gameId);
 };
 
-let hasGamesToInject = true;
-let startingGame = false;
 const startSimulation = async (gameId) => {
   try {
-    startingGame = true;
-    const {
-      state,
-      millis_taken_before_started: millisTakenBeforeStarted,
-    } = await db('game')
-      .select('state', 'millis_taken_before_started')
+    const { state, millisTakenBeforeStarted } = await db('game')
+      .select(
+        'state',
+        'millis_taken_before_started as millisTakenBeforeStarted',
+      )
       .where({ id: gameId })
       .first();
     if (state === GameStates.ASSESSMENT) {
@@ -180,6 +193,37 @@ const startSimulation = async (gameId) => {
           ? { state: GameStates.SIMULATION, budget: 0 }
           : {}),
       });
+    if (state === GameStates.PREPARATION) {
+      const gameMitigations = await db('game_mitigation')
+        .select(
+          'game_mitigation.location as gameMitigationLocation',
+          'game_mitigation.mitigation_id as gameMitigationId',
+        )
+        .where({
+          game_id: gameId,
+          state: true,
+        });
+      const mitigationClauses = gameMitigations.map(
+        ({ gameMitigationId, gameMitigationLocation }) => [
+          gameMitigationId,
+          gameMitigationLocation,
+        ],
+      );
+      await db('game_injection')
+        .where({
+          game_id: gameId,
+          delivered: false,
+        })
+        .whereIn('injection_id', function findInjectionsToSkip() {
+          this.select('id')
+            .from('injection')
+            .whereIn(
+              ['skipper_mitigation', 'skipper_mitigation_type'],
+              mitigationClauses,
+            );
+        })
+        .update({ prevented: true });
+    }
     await db('game_log').insert({
       game_id: gameId,
       game_timer: millisTakenBeforeStarted,
@@ -195,21 +239,18 @@ const startSimulation = async (gameId) => {
     }
     logger.error('startSimulation ERROR: %s', error);
     throw new Error('Server error on start simulation');
-  } finally {
-    hasGamesToInject = true;
-    startingGame = false;
   }
   return getGame(gameId);
 };
 
 const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
   try {
-    const {
-      millis_taken_before_started: millisTakenBeforeStarted,
-      started_at: startedAt,
-      paused,
-    } = await db('game')
-      .select('millis_taken_before_started', 'started_at', 'paused')
+    const { millisTakenBeforeStarted, startedAt, paused } = await db('game')
+      .select(
+        'millis_taken_before_started as millisTakenBeforeStarted',
+        'started_at as startedAt',
+        'paused',
+      )
       .where({ id: gameId, state: GameStates.SIMULATION })
       .first();
     const newMillisTakenBeforeStarted =
@@ -243,125 +284,138 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
 };
 
 // Use for respond to injection and restore system
-const makeResponses = async ({ responseIds, gameId, injectionId }) => {
+const makeResponses = async ({
+  responseIds,
+  gameId,
+  injectionId,
+  customResponse,
+}) => {
   try {
-    const responses = await getResponsesById(responseIds);
     const game = await db('game')
       .select(
         'game.id',
         'game.budget',
-        'game.prevented_injections',
-        'game.started_at',
+        'game.started_at as startedAt',
         'game.paused',
-        'game.millis_taken_before_started',
-        'i.injected_ids',
+        'game.millis_taken_before_started as millisTakenBeforeStarted',
         'm.mitigations',
       )
       .where({ 'game.id': gameId })
       .joinRaw(
         `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
       )
-      .joinRaw(
-        `LEFT JOIN (SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id) i ON i.game_id = game.id`,
-      )
       .first();
-    const gameMitigations = game.mitigations.reduce(
-      (mitigationsAcc, { mitigation_id: mitigationId, location, state }) => ({
-        ...mitigationsAcc,
-        [`${mitigationId}_${location}`]: state,
-      }),
-      {},
-    );
-    // CHECK REQUIRED MITIGATION
-    responses.forEach(
-      ({
-        required_mitigation_type: requiredMitigationType,
-        required_mitigation: requiredMitigation,
-      }) => {
-        if (
-          requiredMitigationType &&
-          requiredMitigation &&
-          !(requiredMitigationType === 'party'
-            ? gameMitigations[`${requiredMitigation}_hq`] &&
-              gameMitigations[`${requiredMitigation}_local`]
-            : gameMitigations[
-                `${requiredMitigation}_${requiredMitigationType}`
-              ])
-        ) {
-          throw new Error('Response not allowed');
-        }
-      },
-    );
-    // CHECK AVAILABLE BUDGET
-    const cost = responses.reduce(
-      (acc, { cost: responseCost }) => acc + responseCost,
-      0,
-    );
-    if (game.budget < cost) {
-      throw new Error('Not enough budget');
-    }
-    // ALLOCATE BUDGET
-    if (cost) {
-      await db('game')
-        .where({ id: gameId })
-        .update({ budget: Math.max(0, game.budget - cost) });
-    }
-    // SET MITIGATIONS
-    await Promise.all(
-      responses.map(
-        ({ mitigation_type: mitigationType, mitigation_id: mitigationId }) =>
-          db('game_mitigation')
-            .where({
-              game_id: gameId,
-              mitigation_id: mitigationId,
-              ...(mitigationType !== 'party'
-                ? { location: mitigationType }
-                : {}),
-            })
-            .update({ state: true }),
-      ),
-    );
-    // SET SYSTEMS
-    const systemIdsToRestore = responses.reduce(
-      (acc, { systems_to_restore: systemsToRestore }) => {
-        if (systemsToRestore && systemsToRestore.length) {
-          return [...acc, ...systemsToRestore];
-        }
-        return acc;
-      },
-      [],
-    );
-    if (systemIdsToRestore.length !== 0) {
-      await db('game_system')
-        .where({ game_id: gameId })
-        .whereIn('system_id', systemIdsToRestore)
-        .update({ state: true });
+    if (responseIds?.length) {
+      const responses = await getResponsesById(responseIds);
+      const gameMitigations = game.mitigations.reduce(
+        (mitigationsAcc, { mitigation_id: mitigationId, location, state }) => ({
+          ...mitigationsAcc,
+          [`${mitigationId}_${location}`]: state,
+        }),
+        {},
+      );
+      // CHECK REQUIRED MITIGATION
+      responses.forEach(
+        ({
+          required_mitigation_type: requiredMitigationType,
+          required_mitigation: requiredMitigation,
+        }) => {
+          if (
+            requiredMitigationType &&
+            requiredMitigation &&
+            !(requiredMitigationType === 'party'
+              ? gameMitigations[`${requiredMitigation}_hq`] &&
+                gameMitigations[`${requiredMitigation}_local`]
+              : gameMitigations[
+                  `${requiredMitigation}_${requiredMitigationType}`
+                ])
+          ) {
+            throw new Error('Response not allowed');
+          }
+        },
+      );
+      // CHECK AVAILABLE BUDGET
+      const cost = responses.reduce(
+        (acc, { cost: responseCost }) => acc + responseCost,
+        0,
+      );
+      if (game.budget < cost) {
+        throw new Error('Not enough budget');
+      }
+      // ALLOCATE BUDGET
+      if (cost) {
+        await db('game')
+          .where({ id: gameId })
+          .update({ budget: Math.max(0, game.budget - cost) });
+      }
+      // SET MITIGATIONS
+      await Promise.all(
+        responses.map(
+          async ({
+            mitigation_type: mitigationType,
+            mitigation_id: mitigationId,
+          }) => {
+            if (mitigationId) {
+              await db('game_mitigation')
+                .where({
+                  game_id: gameId,
+                  mitigation_id: mitigationId,
+                  ...(mitigationType !== 'party'
+                    ? { location: mitigationType }
+                    : {}),
+                })
+                .update({ state: true });
+              await db('game_injection')
+                .where({ game_id: gameId, delivered: false, prevented: false })
+                .whereIn('injection_id', function findInjectionsToSkip() {
+                  this.select('id')
+                    .from('injection')
+                    .where({
+                      skipper_mitigation: mitigationId,
+                      ...(mitigationType !== 'party'
+                        ? { skipper_mitigation_type: mitigationType }
+                        : {}),
+                    });
+                })
+                .update({ prevented: true });
+            }
+          },
+        ),
+      );
+      // SET SYSTEMS
+      const systemIdsToRestore = responses.reduce(
+        (acc, { systems_to_restore: systemsToRestore }) => {
+          if (systemsToRestore && systemsToRestore.length) {
+            return [...acc, ...systemsToRestore];
+          }
+          return acc;
+        },
+        [],
+      );
+      if (systemIdsToRestore.length !== 0) {
+        await db('game_system')
+          .where({ game_id: gameId })
+          .whereIn('system_id', systemIdsToRestore)
+          .update({ state: true });
+      }
     }
     const timeTaken = getTimeTaken(game);
     // SET GAME INJECTION
     if (injectionId) {
-      const injectionResponses = await db('injection_response')
-        .select('injection_to_prevent')
-        .where('injection_id', injectionId)
-        .whereIn('response_id', responseIds);
-      const preventedInjections = [
-        ...injectionResponses.reduce(
-          (acc, { injection_to_prevent: injectionToPrevent }) => {
-            if (
-              injectionToPrevent &&
-              !game.injected_ids.some((id) => id === injectionToPrevent)
-            ) {
-              acc.add(injectionToPrevent);
-            }
-            return acc;
-          },
-          new Set([...game.prevented_injections]),
-        ),
-      ];
-      if (preventedInjections.length !== game.prevented_injections.length) {
-        await db('game').where({ id: gameId }).update({
-          prevented_injections: preventedInjections,
-        });
+      const { followupInjecion } = await db('injection')
+        .select('followup_injecion as followupInjecion')
+        .where('id', injectionId)
+        .first();
+      if (followupInjecion) {
+        await db('game_injection')
+          .where({
+            game_id: gameId,
+            delivered: false,
+            injection_id: followupInjecion,
+          })
+          .update({
+            prevented: true,
+          });
       }
       await db('game_injection')
         .where({
@@ -369,8 +423,12 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
           injection_id: injectionId,
         })
         .update({
-          correct_responses_made: responseIds,
+          ...(responseIds?.length
+            ? { predefined_responses_made: responseIds }
+            : {}),
+          is_response_correct: true,
           response_made_at: timeTaken,
+          ...(customResponse ? { custom_response: customResponse } : {}),
         });
     } else {
       await db('game_log').insert({
@@ -393,156 +451,35 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
   return getGame(gameId);
 };
 
-const injectGames = async () => {
-  if (!hasGamesToInject) {
-    return [];
-  }
-  const games = await db('game')
-    .select(
-      'game.id',
-      'game.started_at',
-      'game.paused',
-      'game.millis_taken_before_started',
-      'game.prevented_injections',
-      'game.poll',
-      'i.injected_ids',
-      'm.mitigations',
-    )
-    .where({
-      'game.paused': false,
-      'game.state': GameStates.SIMULATION,
-      'game.every_injection_checked': false,
-    })
-    .joinRaw(
-      `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
-    )
-    .joinRaw(
-      `LEFT JOIN (SELECT gi.game_id, array_agg(gi.injection_id) AS injected_ids FROM game_injection gi GROUP BY gi.game_id) i ON i.game_id = game.id`,
-    );
-  if (games.length === 0) {
-    if (!startingGame) {
-      hasGamesToInject = false;
-    }
-    return [];
-  }
-  const injections = await db('injection').orderBy('trigger_time');
-  const currentTime = Date.now();
-  return Promise.all(
-    games
-      .reduce((acc, game) => {
-        const timeTaken = getTimeTaken(game, currentTime);
-        const injectionsToSkip = [];
-        const injectionsToInject = [];
-        const gameMitigations = game.mitigations.reduce(
-          (
-            mitigationsAcc,
-            { mitigation_id: mitigationId, location, state },
-          ) => ({
-            ...mitigationsAcc,
-            [`${mitigationId}_${location}`]: state,
-          }),
-          {},
-        );
-        injections.some((injection) => {
-          const isFuture = injection.trigger_time > timeTaken;
-          // stop iteration
-          if (isFuture) {
-            return true;
-          }
-          // do nothing with prevented_injections and injections already injected
-          if (
-            (game.prevented_injections &&
-              game.prevented_injections.some(
-                (injectionId) => injectionId === injection.id,
-              )) ||
-            (game.injected_ids &&
-              game.injected_ids.some(
-                (injectedId) => injectedId === injection.id,
-              ))
-          ) {
-            return false;
-          }
-          if (
-            injection.skipper_mitigation &&
-            injection.skipper_mitigation_type &&
-            gameMitigations[
-              `${injection.skipper_mitigation}_${injection.skipper_mitigation_type}`
-            ]
-          ) {
-            injectionsToSkip.push(injection); // skip and add to prevented_injections
-          } else {
-            injectionsToInject.push(injection); // inject injection
-          }
-          return false;
-        });
-        if (injectionsToSkip.length || injectionsToInject.length) {
-          return [...acc, { game, injectionsToSkip, injectionsToInject }];
-        }
-        return acc;
-      }, [])
-      .map(async ({ game, injectionsToSkip, injectionsToInject }) => {
-        // 1. Add injections
-        await Promise.all(
-          injectionsToInject.map(async (injection) =>
-            db('game_injection').insert({
-              game_id: game.id,
-              injection_id: injection.id,
-            }),
-          ),
-        );
-        // 2. Save prevented injections, update every_injection_checked
-        const everyInjectionChecked =
-          injections.length ===
-          [
-            ...(game.injected_ids || []),
-            ...(game.prevented_injections || []),
-            ...injectionsToSkip,
-            ...injectionsToInject,
-          ].length;
-        if (injectionsToSkip.length || everyInjectionChecked) {
-          await db('game')
-            .where({ 'game.id': game.id })
-            .update({
-              ...(everyInjectionChecked
-                ? {
-                    every_injection_checked: true,
-                  }
-                : {}),
-              ...(injectionsToSkip.length
-                ? {
-                    prevented_injections: (
-                      game.prevented_injections || []
-                    ).concat(injectionsToSkip.map((i) => i.id)),
-                  }
-                : {}),
-            });
-        }
-        return getGame(game.id);
-      }),
-  );
-};
-
 const deliverGameInjection = async ({ gameId, injectionId }) => {
   try {
     const game = await db('game')
-      .select('started_at', 'paused', 'millis_taken_before_started', 'poll')
+      .select(
+        'started_at as startedAt',
+        'paused',
+        'millis_taken_before_started as millisTakenBeforeStarted',
+        'poll',
+      )
       .where({ id: gameId })
       .first();
-    const injection = await db('injection')
-      .select('systems_to_disable', 'poll_change')
+    const { systemsToDisable, pollChange } = await db('injection')
+      .select(
+        'systems_to_disable as systemsToDisable',
+        'poll_change as pollChange',
+      )
       .where({ id: injectionId })
       .first();
-    if (injection.systems_to_disable.length) {
+    if (systemsToDisable.length) {
       await db('game_system')
         .where({ game_id: gameId })
-        .whereIn('system_id', injection.systems_to_disable)
+        .whereIn('system_id', systemsToDisable)
         .update({ state: false });
     }
-    if (injection.poll_change) {
+    if (pollChange) {
       await db('game')
-        .where({ 'game.id': gameId })
+        .where({ id: gameId })
         .update({
-          poll: Math.max(0, game.poll + injection.poll_change),
+          poll: Math.max(0, Math.min(game.poll + pollChange, 100)),
         });
     }
     await db('game_injection')
@@ -558,10 +495,18 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
   return getGame(gameId);
 };
 
-const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
+const makeNonCorrectInjectionResponse = async ({
+  gameId,
+  injectionId,
+  customResponse,
+}) => {
   try {
     const game = await db('game')
-      .select('started_at', 'paused', 'millis_taken_before_started')
+      .select(
+        'started_at as startedAt',
+        'paused',
+        'millis_taken_before_started as millisTakenBeforeStarted',
+      )
       .where({ id: gameId })
       .first();
     await db('game_injection')
@@ -571,6 +516,7 @@ const makeNonCorrectInjectionResponse = async ({ gameId, injectionId }) => {
       })
       .update({
         response_made_at: getTimeTaken(game),
+        ...(customResponse ? { custom_response: customResponse } : {}),
       });
   } catch (error) {
     logger.error('makeNonCorrectInjectionResponse ERROR: %s', error);
@@ -583,21 +529,26 @@ const performAction = async ({ gameId, actionId }) => {
   try {
     const game = await db('game')
       .select(
-        'game.budget',
-        'game.poll',
-        'game.started_at',
-        'game.paused',
-        'game.millis_taken_before_started',
+        'budget',
+        'poll',
+        'started_at as startedAt',
+        'paused',
+        'millis_taken_before_started as millisTakenBeforeStarted',
       )
-      .where({ 'game.id': gameId })
+      .where({ id: gameId })
       .first();
 
-    const {
-      cost,
-      budget_increase: budgetIncrease,
-      poll_increase: pollIncrease,
-      required_systems: requiredSystems,
-    } = await db('action').where({ id: actionId }).first();
+    const { cost, budgetIncrease, pollIncrease, requiredSystems } = await db(
+      'action',
+    )
+      .select(
+        'cost',
+        'budget_increase as budgetIncrease',
+        'poll_increase as pollIncrease',
+        'required_systems as requiredSystems',
+      )
+      .where({ id: actionId })
+      .first();
 
     if (game.budget < cost) {
       throw new Error('Not enough budget');
@@ -618,7 +569,7 @@ const performAction = async ({ gameId, actionId }) => {
       .where({ id: gameId })
       .update({
         budget: Math.max(0, game.budget - cost + budgetIncrease),
-        poll: Math.min(game.poll + pollIncrease, 100),
+        poll: Math.max(0, Math.min(game.poll + pollIncrease, 100)),
       });
     await db('game_log').insert({
       game_id: gameId,
@@ -644,25 +595,28 @@ const performCurveball = async ({ gameId, curveballId }) => {
   try {
     const game = await db('game')
       .select(
-        'game.budget',
-        'game.poll',
-        'game.started_at',
-        'game.paused',
-        'game.millis_taken_before_started',
+        'budget',
+        'poll',
+        'started_at as startedAt',
+        'paused',
+        'millis_taken_before_started as millisTakenBeforeStarted',
       )
-      .where({ 'game.id': gameId })
+      .where({ id: gameId })
       .first();
 
-    const { budget_change: budgetChange, poll_change: pollChange } = await db(
-      'curveball',
-    )
+    const { budgetChange, pollChange, loseAllBudget } = await db('curveball')
+      .select(
+        'lose_all_budget as loseAllBudget',
+        'budget_change as budgetChange',
+        'poll_change as pollChange',
+      )
       .where({ id: curveballId })
       .first();
 
     await db('game')
       .where({ id: gameId })
       .update({
-        budget: Math.max(0, game.budget + budgetChange),
+        budget: loseAllBudget ? 0 : Math.max(0, game.budget + budgetChange),
         poll: Math.min(Math.max(game.poll + pollChange, 0), 100),
       });
 
@@ -687,7 +641,6 @@ module.exports = {
   startSimulation,
   pauseSimulation,
   makeResponses,
-  injectGames,
   deliverGameInjection,
   makeNonCorrectInjectionResponse,
   performCurveball,

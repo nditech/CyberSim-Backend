@@ -1,17 +1,21 @@
 const db = require('../../src/models/db');
 const resetGameTables = require('../resetGameTables');
 const { deliverGameInjection } = require('../../src/models/game');
-const { dumyGame, dumyInjections, dumyGameSystems } = require('../testData');
+const {
+  dummyGame,
+  dummyGameInjections,
+  dummyGameSystems,
+} = require('../testData');
 
-dumyGame.started_at = db.fn.now();
-dumyGame.paused = false;
+dummyGame.started_at = db.fn.now();
+dummyGame.paused = false;
 
-describe('Pause Simulation Function', () => {
+describe('Deliver Game Injection', () => {
   beforeAll(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
-    await db('game_injection').insert(dumyInjections);
-    await db('game_system').insert(dumyGameSystems);
+    await db('game').insert(dummyGame);
+    await db('game_injection').insert(dummyGameInjections);
+    await db('game_system').insert(dummyGameSystems);
   });
 
   afterAll(async (done) => {
@@ -19,11 +23,14 @@ describe('Pause Simulation Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
-  const injection = dumyInjections.find((inj) => inj.injection_id === 'I11');
+  const gameId = dummyGame.id;
+  const injection = dummyGameInjections.find(
+    (inj) => inj.injection_id === 'I1',
+  );
 
   test('should disable systems affacted by injection', async () => {
-    const { systems_to_disable: affactedSystems } = await db('injection')
+    const { affactedSystems } = await db('injection')
+      .select('systems_to_disable as affactedSystems')
       .where({ id: injection.injection_id })
       .first();
 
@@ -40,11 +47,15 @@ describe('Pause Simulation Function', () => {
   });
 
   test('should change game poll', async () => {
-    const { poll_change: pollChange } = await db('injection')
+    const { pollChange } = await db('injection')
+      .select('poll_change as pollChange')
       .where({ id: injection.injection_id })
       .first();
 
-    const { poll: pollBefore } = await db('game').where({ id: gameId }).first();
+    const { pollBefore } = await db('game')
+      .select('poll as pollBefore')
+      .where({ id: gameId })
+      .first();
 
     const { poll: pollAfter } = await deliverGameInjection({
       gameId,
@@ -55,7 +66,8 @@ describe('Pause Simulation Function', () => {
   });
 
   test('should set game delivered and delivered_at property', async () => {
-    const { started_at: startedAt } = await db('game')
+    const { startedAt } = await db('game')
+      .select('started_at as startedAt')
       .where({ id: gameId })
       .first();
     const dateBeforeTest = Date.now() - new Date(startedAt).getTime();

@@ -1,16 +1,16 @@
 const db = require('../../src/models/db');
 const resetGameTables = require('../resetGameTables');
 const { makeNonCorrectInjectionResponse } = require('../../src/models/game');
-const { dumyGame, dumyInjections } = require('../testData');
+const { dummyGame, dummyGameInjections } = require('../testData');
 
-dumyGame.started_at = db.fn.now();
-dumyGame.paused = false;
+dummyGame.started_at = db.fn.now();
+dummyGame.paused = false;
 
-describe('Pause Simulation Function', () => {
+describe('Make Non Correct Injection Response', () => {
   beforeAll(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
-    await db('game_injection').insert(dumyInjections);
+    await db('game').insert(dummyGame);
+    await db('game_injection').insert(dummyGameInjections);
   });
 
   afterAll(async (done) => {
@@ -18,18 +18,20 @@ describe('Pause Simulation Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
-  const injectionId = dumyInjections[0].injection_id;
+  const gameId = dummyGame.id;
+  const injectionId = dummyGameInjections[0].injection_id;
 
   test('should set response time', async () => {
-    const { started_at: startedAt } = await db('game')
+    const { startedAt } = await db('game')
+      .select('started_at as startedAt')
       .where({ id: gameId })
       .first();
     const dateBeforeTest = Date.now() - new Date(startedAt).getTime();
     await makeNonCorrectInjectionResponse({ gameId, injectionId });
     const dateAfterTest = Date.now() - new Date(startedAt).getTime();
 
-    const { response_made_at: responseMadeAt } = await db('game_injection')
+    const { responseMadeAt } = await db('game_injection')
+      .select('response_made_at as responseMadeAt')
       .where({
         game_id: gameId,
         injection_id: injectionId,
@@ -38,5 +40,23 @@ describe('Pause Simulation Function', () => {
 
     expect(responseMadeAt).toBeGreaterThan(dateBeforeTest);
     expect(responseMadeAt).toBeLessThan(dateAfterTest);
+  });
+
+  test('should update custom response', async () => {
+    await makeNonCorrectInjectionResponse({
+      gameId,
+      injectionId,
+      customResponse: 'ASDFGH',
+    });
+
+    const { customResponse } = await db('game_injection')
+      .select('custom_response as customResponse')
+      .where({
+        game_id: gameId,
+        injection_id: injectionId,
+      })
+      .first();
+
+    expect(customResponse).toEqual('ASDFGH');
   });
 });

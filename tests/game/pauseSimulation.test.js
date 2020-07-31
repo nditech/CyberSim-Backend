@@ -1,19 +1,19 @@
 const db = require('../../src/models/db');
 const resetGameTables = require('../resetGameTables');
 const { pauseSimulation } = require('../../src/models/game');
-const { dumyGame } = require('../testData');
+const { dummyGame } = require('../testData');
 const GameStates = require('../../src/constants/GameStates');
 
 const sleep = (m) => new Promise((r) => setTimeout(r, m));
 
-dumyGame.started_at = db.fn.now();
-dumyGame.state = GameStates.SIMULATION;
-dumyGame.paused = false;
+dummyGame.started_at = db.fn.now();
+dummyGame.state = GameStates.SIMULATION;
+dummyGame.paused = false;
 
-describe('Pause Simulation Function', () => {
+describe('Pause Simulation', () => {
   beforeAll(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
+    await db('game').insert(dummyGame);
   });
 
   afterAll(async (done) => {
@@ -21,7 +21,7 @@ describe('Pause Simulation Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
+  const gameId = dummyGame.id;
 
   test('should change game state state', async () => {
     await sleep(500);

@@ -1,12 +1,12 @@
 const db = require('../../src/models/db');
 const { performCurveball } = require('../../src/models/game');
-const { dumyGame, staticCurveballs } = require('../testData');
+const { dummyGame, staticCurveballs } = require('../testData');
 const resetGameTables = require('../resetGameTables');
 
-describe('Perform Curveball Function', () => {
+describe('Perform Curveball', () => {
   beforeEach(async () => {
     await resetGameTables();
-    await db('game').insert(dumyGame);
+    await db('game').insert(dummyGame);
   });
 
   afterAll(async (done) => {
@@ -14,9 +14,10 @@ describe('Perform Curveball Function', () => {
     done();
   });
 
-  const gameId = dumyGame.id;
+  const gameId = dummyGame.id;
   const negativeCurveballToPerform = staticCurveballs[0];
   const positiveCurveballToPerform = staticCurveballs[1];
+  const loseAllBudgetCurveballPerform = staticCurveballs[2];
 
   test('should decrease budget and poll of game', async () => {
     const { poll, budget } = await performCurveball({
@@ -24,23 +25,26 @@ describe('Perform Curveball Function', () => {
       curveballId: negativeCurveballToPerform.id,
     });
 
-    const gameLog = await db('game_log')
-      .where({
-        game_id: gameId,
-        type: 'Curveball Event',
-        curveball_id: negativeCurveballToPerform.id,
-      })
-      .first();
-
-    expect(gameLog).toBeTruthy();
-    expect(poll).toBe(dumyGame.poll + negativeCurveballToPerform.poll_change);
+    expect(poll).toBe(dummyGame.poll + negativeCurveballToPerform.poll_change);
     expect(budget).toBe(
-      dumyGame.budget + negativeCurveballToPerform.budget_change,
+      dummyGame.budget + negativeCurveballToPerform.budget_change,
     );
   });
 
   test('should increase budget and poll of game', async () => {
     const { poll, budget } = await performCurveball({
+      gameId,
+      curveballId: positiveCurveballToPerform.id,
+    });
+
+    expect(poll).toBe(dummyGame.poll + positiveCurveballToPerform.poll_change);
+    expect(budget).toBe(
+      dummyGame.budget + positiveCurveballToPerform.budget_change,
+    );
+  });
+
+  test('should log', async () => {
+    await performCurveball({
       gameId,
       curveballId: positiveCurveballToPerform.id,
     });
@@ -54,9 +58,14 @@ describe('Perform Curveball Function', () => {
       .first();
 
     expect(gameLog).toBeTruthy();
-    expect(poll).toBe(dumyGame.poll + positiveCurveballToPerform.poll_change);
-    expect(budget).toBe(
-      dumyGame.budget + positiveCurveballToPerform.budget_change,
-    );
+  });
+
+  test('should lose all budget', async () => {
+    const { budget } = await performCurveball({
+      gameId,
+      curveballId: loseAllBudgetCurveballPerform.id,
+    });
+
+    expect(budget).toBe(0);
   });
 });

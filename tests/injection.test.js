@@ -2,7 +2,7 @@ const db = require('../src/models/db');
 const { getInjections } = require('../src/models/injection');
 const { staticInjections } = require('./testData');
 
-describe('Get Injections Function', () => {
+describe('Get Injections', () => {
   afterAll(async (done) => {
     await db.destroy();
     done();

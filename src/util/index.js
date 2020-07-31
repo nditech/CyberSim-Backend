@@ -1,9 +1,5 @@
 const getTimeTaken = (
-  {
-    paused,
-    millis_taken_before_started: millisTakenBeforeStarted,
-    started_at: startedAt,
-  },
+  { paused, millisTakenBeforeStarted, startedAt },
   currentTime,
 ) =>
   paused
