@@ -55,6 +55,8 @@ exports.up = async (knex) => {
     // Emit these changes on game state when injection happens
     tbl.specificType('systems_to_disable', 'text ARRAY'); // Switch these systems to FALSE
     tbl.decimal('poll_change');
+    tbl.string('followup_injecion');
+    tbl.foreign('followup_injecion').references('id').inTable('injection');
   });
 
   // MANY injection_response to MANY injection
@@ -64,8 +66,6 @@ exports.up = async (knex) => {
     tbl.string('response_id').notNullable();
     tbl.foreign('injection_id').references('id').inTable('injection');
     tbl.foreign('response_id').references('id').inTable('response');
-    tbl.string('injection_to_prevent');
-    tbl.foreign('injection_to_prevent').references('id').inTable('injection');
   });
 
   await knex.schema.createTable('role', (tbl) => {

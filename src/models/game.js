@@ -395,17 +395,17 @@ const makeResponses = async ({ responseIds, gameId, injectionId }) => {
     const timeTaken = getTimeTaken(game);
     // SET GAME INJECTION
     if (injectionId) {
-      const injectionResponses = await db('injection_response')
-        .select('injection_to_prevent as injectionToPrevent')
-        .where('injection_id', injectionId)
-        .whereIn('response_id', responseIds);
-      const injectionsToPrevent = injectionResponses.map(
-        ({ injectionToPrevent }) => injectionToPrevent,
-      );
-      if (injectionsToPrevent.length) {
+      const { followupInjecion } = await db('injection')
+        .select('followup_injecion as followupInjecion')
+        .where('id', injectionId)
+        .first();
+      if (followupInjecion) {
         await db('game_injection')
-          .where({ game_id: gameId, delivered: false })
-          .whereIn('injection_id', injectionsToPrevent)
+          .where({
+            game_id: gameId,
+            delivered: false,
+            injection_id: followupInjecion,
+          })
           .update({
             prevented: true,
           });

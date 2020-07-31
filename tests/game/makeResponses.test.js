@@ -115,10 +115,9 @@ describe('Make Responses', () => {
   });
 
   test('should update prevented injections based on response', async () => {
-    const { injection_to_prevent: injectionToPrevent } = await db(
-      'injection_response',
-    )
-      .where({ response_id: 'RP1', injection_id: 'I1' })
+    const { followupInjecion } = await db('injection')
+      .select('followup_injecion as followupInjecion')
+      .where({ id: 'I1' })
       .first();
 
     await db('game_mitigation')
@@ -136,7 +135,7 @@ describe('Make Responses', () => {
       .where({
         prevented: true,
         game_id: dummyGame.id,
-        injection_id: injectionToPrevent,
+        injection_id: followupInjecion,
       })
       .first();
 

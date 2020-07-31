@@ -18,6 +18,7 @@ const testSeed = async () => {
       skipper_mitigation: 'M1',
       skipper_mitigation_type: 'hq',
       recommendations: 'Placeholder recommendation 1',
+      followup_injecion: 'I2',
     },
     {
       id: 'I2',
@@ -117,8 +118,8 @@ const testSeed = async () => {
   // INJECTION RESPONSE
   await db('injection_response').del();
   await db('injection_response').insert([
-    { response_id: 'RP1', injection_id: 'I1', injection_to_prevent: 'I2' },
-    { response_id: 'RP2', injection_id: 'I2', injection_to_prevent: null },
+    { response_id: 'RP1', injection_id: 'I1' },
+    { response_id: 'RP2', injection_id: 'I2' },
   ]);
   // ROLES
   await db('role').del();
