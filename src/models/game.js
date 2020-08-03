@@ -144,6 +144,7 @@ const changeMitigation = async ({
             : {}),
         });
       if (game.state !== GameStates.PREPARATION) {
+        const timeTaken = getTimeTaken(game);
         await db('game_injection')
           .where({ game_id: gameId, delivered: false })
           .whereIn('injection_id', function findInjectionsToSkip() {
@@ -152,10 +153,10 @@ const changeMitigation = async ({
               skipper_mitigation_type: mitigationType,
             });
           })
-          .update({ prevented: true });
+          .update({ prevented: true, prevented_at: timeTaken });
         await db('game_log').insert({
           game_id: gameId,
-          game_timer: getTimeTaken(game),
+          game_timer: timeTaken,
           type: 'Budget Item Purchase',
           mitigation_id: mitigationId,
           mitigation_type: mitigationType,
@@ -222,7 +223,7 @@ const startSimulation = async (gameId) => {
               mitigationClauses,
             );
         })
-        .update({ prevented: true });
+        .update({ prevented: true, prevented_at: millisTakenBeforeStarted });
     }
     await db('game_log').insert({
       game_id: gameId,
@@ -305,6 +306,7 @@ const makeResponses = async ({
         `LEFT JOIN (SELECT gm.game_id, array_agg(to_json(gm)) AS mitigations FROM game_mitigation gm GROUP BY gm.game_id) m ON m.game_id = game.id`,
       )
       .first();
+    const timeTaken = getTimeTaken(game);
     if (responseIds?.length) {
       const responses = await getResponsesById(responseIds);
       const gameMitigations = game.mitigations.reduce(
@@ -377,7 +379,7 @@ const makeResponses = async ({
                         : {}),
                     });
                 })
-                .update({ prevented: true });
+                .update({ prevented: true, prevented_at: timeTaken });
             }
           },
         ),
@@ -399,7 +401,6 @@ const makeResponses = async ({
           .update({ state: true });
       }
     }
-    const timeTaken = getTimeTaken(game);
     // SET GAME INJECTION
     if (injectionId) {
       const { followupInjecion } = await db('injection')
@@ -415,6 +416,7 @@ const makeResponses = async ({
           })
           .update({
             prevented: true,
+            prevented_at: timeTaken,
           });
       }
       await db('game_injection')

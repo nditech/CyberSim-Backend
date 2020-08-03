@@ -146,6 +146,7 @@ exports.up = async (knex) => {
     tbl.boolean('is_response_correct');
     tbl.string('custom_response');
     tbl.boolean('prevented').notNullable().defaultTo(false);
+    tbl.integer('prevented_at');
     tbl.boolean('delivered').notNullable().defaultTo(false);
     tbl.integer('delivered_at');
     tbl.integer('response_made_at');
