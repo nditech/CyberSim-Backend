@@ -229,7 +229,7 @@ const startSimulation = async (gameId) => {
       game_id: gameId,
       game_timer: millisTakenBeforeStarted,
       type: 'Game State Changed',
-      descripition:
+      description:
         state === GameStates.PREPARATION
           ? 'Simulation Started'
           : 'Timer Started',
@@ -271,7 +271,7 @@ const pauseSimulation = async ({ gameId, finishSimulation = false }) => {
         ? { game_timer: newMillisTakenBeforeStarted }
         : { game_timer: millisTakenBeforeStarted }),
       type: 'Game State Changed',
-      descripition: finishSimulation ? 'Game Finalized' : 'Timer Stopped',
+      description: finishSimulation ? 'Game Finalized' : 'Timer Stopped',
     });
   } catch (error) {
     if (finishSimulation) {

@@ -52,7 +52,7 @@ describe('Start Stimulation', () => {
       .where({
         game_id: gameId,
         type: 'Game State Changed',
-        descripition: 'Simulation Started',
+        description: 'Simulation Started',
       })
       .first();
 
@@ -69,7 +69,7 @@ describe('Start Stimulation', () => {
       .where({
         game_id: gameId,
         type: 'Game State Changed',
-        descripition: 'Timer Started',
+        description: 'Timer Started',
       })
       .first();
 

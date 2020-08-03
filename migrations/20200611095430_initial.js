@@ -168,7 +168,7 @@ exports.up = async (knex) => {
         'Curveball Event',
       ])
       .notNullable();
-    tbl.string('descripition');
+    tbl.string('description');
     tbl.string('mitigation_type'); // Budget Item Purchase
     tbl.string('mitigation_id'); // Budget Item Purchase
     tbl.foreign('mitigation_id').references('id').inTable('mitigation');

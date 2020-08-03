@@ -45,7 +45,7 @@ describe('Pause Simulation', () => {
       .where({
         game_id: gameId,
         type: 'Game State Changed',
-        descripition: 'Timer Stopped',
+        description: 'Timer Stopped',
         game_timer: millisTakenBeforeStarted,
       })
       .first();
