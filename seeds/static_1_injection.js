@@ -5,6 +5,8 @@ exports.seed = (knex) =>
       knex('injection').insert([
         {
           id: 'I1',
+          recommendations:
+            'Devices: Maintain the physical security of your devices',
           title: 'Local party staff switches parties',
           description: 'Local party staff switches parties',
           trigger_time: 120000,
@@ -15,11 +17,12 @@ exports.seed = (knex) =>
           poll_change: null,
           systems_to_disable: [],
           skipper_mitigation: null,
-          recommendations: 'Placeholder recommendation',
           followup_injecion: 'I33',
         },
         {
           id: 'I2',
+          recommendations:
+            'Require two-factor authentication (2FA) on all systems and applications',
           title: 'Databreach of Amazon',
           description: 'News of databreach of Amazon',
           trigger_time: 60000,
@@ -33,6 +36,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I3',
+          recommendations:
+            'Require two-factor authentication (2FA) on all systems and applications',
           title: 'Databreach of Amazon',
           description: 'News of databreach of Amazon',
           trigger_time: 300000,
@@ -46,6 +51,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I4',
+          recommendations: 'Educate staffers about the phishing threat.',
           title: 'Fake DB login page',
           description:
             'Fake DB login page - ask DB users to sign in for necessary campaign action',
@@ -61,6 +67,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I5',
+          recommendations:
+            'Immediately block access of people who leave the campaign',
           title: 'Lyla Bowman switches parties',
           description:
             'National social media staffer Lyla Bowman (who had access to FB page) switches parties',
@@ -89,6 +97,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I7',
+          recommendations: 'Educate staffers about the phishing threat.',
           title: 'Spearphishing message - HQ',
           description:
             'Spearphishing message attack from personal email of national candidate',
@@ -105,6 +114,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I8',
+          recommendations: 'Educate staffers about the phishing threat.',
           title: 'Spearphishing message - LB',
           description:
             'Spearphishing message attack from personal email of national candidate',
@@ -121,6 +131,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I9',
+          recommendations:
+            'Devices: Maintain the physical security of your devices',
           title: 'Office cleaning person leaves',
           description: 'Office cleaning person leaves',
           trigger_time: 630000,
@@ -149,6 +161,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I11',
+          recommendations:
+            'Devices: Maintain the physical security of your devices',
           title: 'Computers and hard drives stolen',
           description:
             'READ TO TABLE: Adversary walks into office & computers and hard drives stolen',
@@ -164,6 +178,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I12',
+          recommendations: 'Educate staffers about the phishing threat.',
           title: 'Phishing email - Facebook',
           description: 'Facebook password reset phishing email',
           trigger_time: 750000,
@@ -178,6 +193,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I13',
+          recommendations:
+            'Immediately block access of people who leave the campaign',
           title: 'Juran Knott leaves the party',
           description:
             'Staff person with DB access, Juran Knott, leaves the party',
@@ -193,6 +210,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I14',
+          recommendations:
+            'Require two-factor authentication (2FA) on all systems and applications',
           title: 'Embarassing Facebook post',
           description: 'Embarrassing Facebook post sent during campaign',
           trigger_time: 1020000,
@@ -220,6 +239,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I16',
+          recommendations: 'Educate staffers about the phishing threat.',
           title: 'Spreadsheet phishing attempt',
           description: 'Email received asking staff to download spreadsheet',
           trigger_time: 1020000,
@@ -247,6 +267,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I18',
+          recommendations:
+            'Turn on auto-wipe for your mobile devices so that they will erase themselves after a certain number of failed login attempts.',
           title: "Staff person Rodrigo Wintz' phone is stolen",
           description: "Staff person Rodrigo Wintz' phone is stolen",
           trigger_time: 1260000,
@@ -261,6 +283,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I19',
+          recommendations:
+            'Turn on auto-wipe for your mobile devices so that they will erase themselves after a certain number of failed login attempts.',
           title: "Volunteer Julienne Marsh's phone is stolen",
           description: "Volunteer Julienne Marsh's phone is stolen",
           trigger_time: 1260000,
@@ -275,6 +299,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I20',
+          recommendations: 'Maintain the physical security of your devices',
           title: 'Former cleaner stole computers',
           description:
             'READ TO TABLE: Former cleaner accesses office & computers stolen',
@@ -290,6 +315,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I21',
+          recommendations: 'Maintain the physical security of your devices',
           title: 'Stolen voter DB used by opponent',
           description:
             'Computer is stolen & local excel DB of voters stolen and used by opponent',
@@ -305,6 +331,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I22',
+          recommendations:
+            'Immediately block access of people who leave the campaign',
           title: 'Alina Weaver leaves party',
           description: 'Local comms staff person Alina Weaver leaves party',
           trigger_time: 1680000,
@@ -349,6 +377,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I25',
+          recommendations: 'Have a backup!',
           title: 'Local voters list stolen and wiped',
           description:
             'READ TO TABLE: Computers infected & local voters list and excel databases stolen and wiped by opponents',
@@ -364,6 +393,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I26',
+          recommendations:
+            'Turn on auto-wipe for your mobile devices so that they will erase themselves after a certain number of failed login attempts.',
           title: 'Staff person Simon Masnar loses phone',
           description: 'Staff person Simon Masnar loses phone',
           trigger_time: 2160000,
@@ -451,6 +482,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I32',
+          recommendations: 'Maintain the physical security of your devices',
           title: 'Adversary stole computers',
           description:
             'READ TO TABLE: Adversary walks into office & steals computers',
@@ -466,6 +498,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I33',
+          recommendations: 'Maintain the physical security of your devices',
           title: 'Former staff stole computers',
           description:
             'READ TO TABLE: Former staff accesses office steals computers',
@@ -481,6 +514,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I34',
+          recommendations:
+            'Make sure that those who leave the campaign can no longer access campaign-related accounts',
           title: 'Marvin Chase changes party',
           description:
             'Staffer with Facebook account pwd, Marvin Chase, changes party',
@@ -596,6 +631,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I42',
+          recommendations:
+            'Require two-factor authentication (2FA) on all systems and applications',
           title: 'Harmful post on national Facebook account',
           description: 'Harmful posts go up on the national Facebook account',
           trigger_time: 2820000,
@@ -636,6 +673,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I45',
+          recommendations: 'Have a backup!',
           title: 'Adversary stole campaign strategy',
           description:
             'Adversary breaks into local office & steals hard copy of campaign strategy and outreach list',
@@ -651,6 +689,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I46',
+          recommendations: 'Have a backup!',
           title: 'Office fire',
           description:
             'READ TO TABLE: Office fire destroys local computers & strategic voter lists lost',
@@ -708,6 +747,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I50',
+          recommendations: 'Have a backup!',
           title: 'HQ members DB wiped',
           description: 'READ TO TABLE: HQ members database contents deleted',
           trigger_time: 3180000,
@@ -789,6 +829,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I56',
+          recommendations: 'Have a backup!',
           title: 'Ransomware attack',
           description: 'READ TO TABLE: Ransomware attack hits party computers',
           trigger_time: 3600000,
@@ -803,6 +844,7 @@ exports.seed = (knex) =>
         },
         {
           id: 'I57',
+          recommendations: 'Have a backup!',
           title: 'Ransomware attack',
           description: 'READ TO TABLE: Ransomware attack hits party computers',
           trigger_time: 4080000,
@@ -831,6 +873,8 @@ exports.seed = (knex) =>
         },
         {
           id: 'I59',
+          recommendations:
+            'Require two-factor authentication (2FA) on all systems and applications',
           title: 'Harmful post on Facebook page',
           description:
             'Harmful posts go up on your local FB page, deterring voters on election day',
