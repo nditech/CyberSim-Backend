@@ -17,6 +17,7 @@
   "rules": {
     "prettier/prettier": "error",
     "no-nested-ternary": 0,
-    "no-console": "off"
+    "no-console": "off",
+    "prefer-destructuring": "off"
   }
 }

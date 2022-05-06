@@ -471,7 +471,7 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
       )
       .where({ id: injectionId })
       .first();
-    if (systemsToDisable.length) {
+    if (systemsToDisable?.length) {
       await db('game_system')
         .where({ game_id: gameId })
         .whereIn('system_id', systemsToDisable)
