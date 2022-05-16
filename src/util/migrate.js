@@ -89,6 +89,9 @@ async function migrate(apiKey, baseId) {
 
   const base = Airtable.base(baseId);
 
+  // do a starting "fake" fetch to check if the API key and table id are correct
+  await fetchTable(base, 'handbook_categories');
+
   // define arrays for junctions tables that must be added at the end of the migration
   const injectionResponse = [];
   const actionRole = [];
