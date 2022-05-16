@@ -16,7 +16,9 @@ const {
 } = require('./models/game');
 
 module.exports = (http) => {
-  const io = socketio(http);
+  const io = socketio(http, {
+    cors: { origin: '*' },
+  });
 
   io.on(SocketEvents.CONNECT, (socket) => {
     logger.info('Facilitator CONNECT');
