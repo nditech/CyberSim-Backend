@@ -166,6 +166,14 @@ async function migrate(apiKey, baseId) {
     {},
   );
 
+  const rolesMap = roles.reduce(
+    (obj, { name, id }) => ({
+      ...obj,
+      [id]: name,
+    }),
+    {},
+  );
+
   // process events
   injections.forEach((injection) => {
     injection.location = locations[injection.locations];
@@ -173,6 +181,10 @@ async function migrate(apiKey, baseId) {
     injection.type = eventTypes[injection.event_types] || 'Board';
     injection.followup_injecion = injection.followup_event;
     injection.trigger_time *= 1000;
+    injection.recipient_role = rolesMap[injection.role];
+    injection.asset_code = injection.spreadsheet_id
+      ? String(injection.spreadsheet_id)
+      : undefined;
   });
   injections.forEach(({ id, response = [] }) => {
     response.forEach((responseId) =>

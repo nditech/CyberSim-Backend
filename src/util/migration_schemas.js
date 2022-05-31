@@ -33,7 +33,7 @@ const airtableSchemas = {
     locations: singleRef,
     event_types: singleRef,
     role: singleRef,
-    spdreadsheet_id: yup.number().integer().positive(),
+    spreadsheet_id: yup.number().integer().positive(),
     poll_change: yup.number(),
     systems_to_disable: multiRef,
     skipper_mitigation: singleRef,
@@ -112,6 +112,7 @@ const dbSchemas = {
     skipper_mitigation: yup.string(),
     skipper_mitigation_type: yup.string().oneOf(locations),
     followup_injecion: yup.string(),
+    asset_code: yup.string(),
   }),
   mitigation: yup.object({
     id,
