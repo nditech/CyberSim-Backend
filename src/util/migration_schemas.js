@@ -36,6 +36,7 @@ const airtableSchemas = {
     spreadsheet_id: yup.number().integer().positive(),
     poll_change: yup.number(),
     systems_to_disable: multiRef,
+    response: multiRef,
     skipper_mitigation: singleRef,
     // skipper_mitigation_type: yup.string(),
     followup_event: singleRef,
