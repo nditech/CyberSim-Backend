@@ -38,7 +38,6 @@ const airtableSchemas = {
     systems_to_disable: multiRef,
     response: multiRef,
     skipper_mitigation: singleRef,
-    // skipper_mitigation_type: yup.string(),
     followup_event: singleRef,
   }),
   purchased_mitigations: yup.object({
@@ -111,7 +110,6 @@ const dbSchemas = {
     poll_change: yup.number().integer(),
     systems_to_disable: multiRef,
     skipper_mitigation: yup.string(),
-    skipper_mitigation_type: yup.string().oneOf(locations),
     followup_injecion: yup.string(),
     asset_code: yup.string(),
   }),

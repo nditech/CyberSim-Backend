@@ -128,7 +128,6 @@ const staticInjections = [
     poll_change: -0.5,
     systems_to_disable: ['S1'],
     skipper_mitigation: 'M1',
-    skipper_mitigation_type: 'hq',
     recommendations: 'Placeholder recommendation 1',
     responses: [
       {
@@ -156,7 +155,6 @@ const staticInjections = [
     poll_change: -0.5,
     systems_to_disable: [],
     skipper_mitigation: null,
-    skipper_mitigation_type: null,
     recommendations: 'Placeholder recommendation 2',
     responses: [
       {
@@ -184,7 +182,6 @@ const staticInjections = [
     poll_change: null,
     systems_to_disable: [],
     skipper_mitigation: 'M2',
-    skipper_mitigation_type: 'local',
     recommendations: 'Placeholder recommendation 3',
     responses: null,
   },

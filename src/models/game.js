@@ -150,7 +150,6 @@ const changeMitigation = async ({
           .whereIn('injection_id', function findInjectionsToSkip() {
             this.select('id').from('injection').where({
               skipper_mitigation: mitigationId,
-              skipper_mitigation_type: mitigationType,
             });
           })
           .update({ prevented: true, prevented_at: timeTaken });
@@ -196,19 +195,13 @@ const startSimulation = async (gameId) => {
       });
     if (state === GameStates.PREPARATION) {
       const gameMitigations = await db('game_mitigation')
-        .select(
-          'game_mitigation.location as gameMitigationLocation',
-          'game_mitigation.mitigation_id as gameMitigationId',
-        )
+        .select('game_mitigation.mitigation_id as gameMitigationId')
         .where({
           game_id: gameId,
           state: true,
         });
       const mitigationClauses = gameMitigations.map(
-        ({ gameMitigationId, gameMitigationLocation }) => [
-          gameMitigationId,
-          gameMitigationLocation,
-        ],
+        ({ gameMitigationId }) => gameMitigationId,
       );
       await db('game_injection')
         .where({
@@ -218,10 +211,7 @@ const startSimulation = async (gameId) => {
         .whereIn('injection_id', function findInjectionsToSkip() {
           this.select('id')
             .from('injection')
-            .whereIn(
-              ['skipper_mitigation', 'skipper_mitigation_type'],
-              mitigationClauses,
-            );
+            .whereIn('skipper_mitigation', mitigationClauses);
         })
         .update({ prevented: true, prevented_at: millisTakenBeforeStarted });
     }
@@ -370,14 +360,9 @@ const makeResponses = async ({
               await db('game_injection')
                 .where({ game_id: gameId, delivered: false, prevented: false })
                 .whereIn('injection_id', function findInjectionsToSkip() {
-                  this.select('id')
-                    .from('injection')
-                    .where({
-                      skipper_mitigation: mitigationId,
-                      ...(mitigationType !== 'party'
-                        ? { skipper_mitigation_type: mitigationType }
-                        : {}),
-                    });
+                  this.select('id').from('injection').where({
+                    skipper_mitigation: mitigationId,
+                  });
                 })
                 .update({ prevented: true, prevented_at: timeTaken });
             }
