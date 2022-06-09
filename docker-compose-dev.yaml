@@ -10,8 +10,6 @@ services:
       POSTGRES_USER: ndi
     ports:
       - 5432:5432
-    volumes:
-      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
 
   adminer:
     image: adminer

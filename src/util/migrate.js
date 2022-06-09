@@ -68,6 +68,7 @@ async function saveToDb(tableName, items) {
     );
     await db(tableName).insert(validatedItems);
   } catch (err) {
+    console.error(err);
     err.message =
       'There were deep SQL schema validation errors during the migration! Please contact the developers to fix them.';
     throw err;
@@ -98,6 +99,7 @@ async function migrate(apiKey, baseId) {
 
   const tables = await Promise.allSettled([
     // fetch the backing tables that do not exist in our sql database and are only needed for data transformation
+    fetchTable(base, 'purchased_mitigations_category'),
     fetchTable(base, 'handbook_categories'),
     fetchTable(base, 'locations'),
     fetchTable(base, 'recommendations'),
@@ -122,6 +124,7 @@ async function migrate(apiKey, baseId) {
   }
 
   const [
+    rawPurchasedMitigationCategories,
     rawHandbookCategories,
     rawLocations,
     rawRecommendations,
@@ -136,6 +139,11 @@ async function migrate(apiKey, baseId) {
   ] = tables.map((table) => table.value);
 
   //  process the backing tables
+  const purchasedMitigationCategories = rawPurchasedMitigationCategories.reduce(
+    (obj, { name, id }) => ({ ...obj, [id]: name }),
+    {},
+  );
+
   const handbookCategories = rawHandbookCategories.reduce(
     (obj, { name, id }) => ({ ...obj, [id]: name }),
     {},
@@ -202,6 +210,7 @@ async function migrate(apiKey, baseId) {
     const mitigationLocations = mitigation.locations.map((id) => locations[id]);
     mitigation.is_hq = mitigationLocations.includes('hq');
     mitigation.is_local = mitigationLocations.includes('local');
+    mitigation.category = purchasedMitigationCategories[mitigation.category];
   });
 
   // process responses

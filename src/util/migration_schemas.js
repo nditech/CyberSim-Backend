@@ -7,6 +7,10 @@ const singleRef = yup
 const multiRef = yup.array().of(yup.string());
 
 const airtableSchemas = {
+  purchased_mitigations_category: yup.object({
+    id,
+    name: yup.string(),
+  }),
   handbook_categories: yup.object({
     id,
     name: yup.string(),
@@ -45,7 +49,7 @@ const airtableSchemas = {
     description: yup.string().required(),
     locations: multiRef.required(),
     cost: yup.number(),
-    category: yup.string().required(),
+    category: singleRef.required(),
   }),
   responses: yup.object({
     id,
@@ -88,13 +92,6 @@ const airtableSchemas = {
 
 const locationsShort = ['hq', 'local'];
 const locations = ['hq', 'local', 'party'];
-const mitigationCategories = [
-  'Operation',
-  'National party voter database',
-  'National party website',
-  'Accounts',
-  'Devices',
-];
 const injectionTypes = ['Table', 'Background', 'Board'];
 
 const dbSchemas = {
@@ -120,7 +117,7 @@ const dbSchemas = {
     is_local: yup.boolean().required(),
     hq_cost: yup.number(),
     local_cost: yup.number(),
-    category: yup.string().oneOf(mitigationCategories).required(),
+    category: yup.string().required(),
   }),
   response: yup.object({
     id,
