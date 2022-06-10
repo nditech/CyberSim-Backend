@@ -17,14 +17,13 @@ const typeMap = {
   'System Board': 'Board',
 };
 
-async function validate(schema, items = [], tableName, sql) {
+async function validate(schema, items = [], tableName) {
   try {
-    return yup
+    return await yup
       .array()
       .of(schema)
       .validate(items, { stripUnknown: true, abortEarly: false });
   } catch (err) {
-    err.sql = sql;
     err.validation = true;
     err.tableName = tableName;
     throw err;
@@ -61,7 +60,7 @@ function fetchTable(base, tableName) {
 }
 
 async function validateForDb(tableName, items) {
-  return validate(dbSchemas[tableName], items, tableName, true);
+  return validate(dbSchemas[tableName], items, tableName);
 }
 
 async function saveToDb(tableName, items) {
@@ -250,7 +249,7 @@ async function migrate(apiKey, baseId) {
 
   throwNecessaryValidationErrors(
     validatedSqlTables,
-    'There were SQL schema errors during the migration! Please fix contact a developer about them.',
+    'There were SQL schema errors during the migration! Please contact a developer about them.',
   );
 
   const [
