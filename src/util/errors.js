@@ -16,4 +16,18 @@ function transformValidationErrors(validationErrors) {
   return transformValidationError(validationErrors);
 }
 
-module.exports = transformValidationErrors;
+function throwNecessaryValidationErrors(validationResponses, message) {
+  const errors = validationResponses
+    .filter((table) => table.status === 'rejected')
+    .map((error) => error.reason);
+  if (errors.length) {
+    errors.message = message;
+    errors.validation = true;
+    throw errors;
+  }
+}
+
+module.exports = {
+  transformValidationErrors,
+  throwNecessaryValidationErrors,
+};

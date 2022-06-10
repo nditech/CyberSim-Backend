@@ -4,6 +4,7 @@ const Airtable = require('airtable');
 const yup = require('yup');
 const { dbSchemas, airtableSchemas } = require('./migration_schemas');
 const db = require('../models/db');
+const { throwNecessaryValidationErrors } = require('./errors');
 
 const locationMap = {
   'Local Branch': 'local',
@@ -16,13 +17,14 @@ const typeMap = {
   'System Board': 'Board',
 };
 
-async function validate(schema, items = [], tableName) {
+async function validate(schema, items = [], tableName, sql) {
   try {
-    return await yup
+    return yup
       .array()
       .of(schema)
       .validate(items, { stripUnknown: true, abortEarly: false });
   } catch (err) {
+    err.sql = sql;
     err.validation = true;
     err.tableName = tableName;
     throw err;
@@ -58,21 +60,12 @@ function fetchTable(base, tableName) {
   });
 }
 
+async function validateForDb(tableName, items) {
+  return validate(dbSchemas[tableName], items, tableName, true);
+}
+
 async function saveToDb(tableName, items) {
-  try {
-    const validatedItems = await validate(
-      dbSchemas[tableName],
-      items,
-      tableName,
-      true,
-    );
-    await db(tableName).insert(validatedItems);
-  } catch (err) {
-    console.error(err);
-    err.message =
-      'There were deep SQL schema validation errors during the migration! Please contact the developers to fix them.';
-    throw err;
-  }
+  await db(tableName).insert(items);
 }
 
 function addPartyLocation(locations) {
@@ -97,7 +90,7 @@ async function migrate(apiKey, baseId) {
   const injectionResponse = [];
   const actionRole = [];
 
-  const tables = await Promise.allSettled([
+  const validatedAirtableTables = await Promise.allSettled([
     // fetch the backing tables that do not exist in our sql database and are only needed for data transformation
     fetchTable(base, 'purchased_mitigations_category'),
     fetchTable(base, 'handbook_categories'),
@@ -114,14 +107,10 @@ async function migrate(apiKey, baseId) {
     fetchTable(base, 'curveballs'),
   ]);
 
-  const errors = tables
-    .filter((table) => table.status === 'rejected')
-    .map((error) => error.reason);
-  if (errors.length) {
-    errors.message =
-      'There were airtable schema errors during the migration! Please fix them inside your airtable.';
-    throw errors;
-  }
+  throwNecessaryValidationErrors(
+    validatedAirtableTables,
+    'There were airtable schema errors during the migration! Please fix them inside your airtable.',
+  );
 
   const [
     rawPurchasedMitigationCategories,
@@ -136,7 +125,7 @@ async function migrate(apiKey, baseId) {
     roles,
     actions,
     curveballs,
-  ] = tables.map((table) => table.value);
+  ] = validatedAirtableTables.map((table) => table.value);
 
   //  process the backing tables
   const purchasedMitigationCategories = rawPurchasedMitigationCategories.reduce(
@@ -242,20 +231,49 @@ async function migrate(apiKey, baseId) {
   });
 
   // clean the current db and re-migrate it
-  await db.migrate.rollback();
+  await db.migrate.rollback({}, true);
   await db.migrate.latest();
 
   // add all the data to the db
   // sequential processing is important here as some tables rely on data from other tables to be already there
-  await saveToDb('injection', injections);
-  await saveToDb('mitigation', mitigations);
-  await saveToDb('response', responses);
-  await saveToDb('system', systems);
-  await saveToDb('role', roles);
-  await saveToDb('action', actions);
-  await saveToDb('curveball', curveballs);
-  await saveToDb('injection_response', injectionResponse);
-  await saveToDb('action_role', actionRole);
+  const validatedSqlTables = await Promise.allSettled([
+    validateForDb('injection', injections),
+    validateForDb('mitigation', mitigations),
+    validateForDb('response', responses),
+    validateForDb('system', systems),
+    validateForDb('role', roles),
+    validateForDb('action', actions),
+    validateForDb('curveball', curveballs),
+    validateForDb('injection_response', injectionResponse),
+    validateForDb('action_role', actionRole),
+  ]);
+
+  throwNecessaryValidationErrors(
+    validatedSqlTables,
+    'There were SQL schema errors during the migration! Please fix contact a developer about them.',
+  );
+
+  const [
+    sqlInjections,
+    sqlMitigations,
+    sqlResponses,
+    sqlSystems,
+    sqlRoles,
+    sqlActions,
+    sqlCurveballs,
+    sqlInjectionResponse,
+    sqlActionRole,
+  ] = validatedSqlTables.map((table) => table.value);
+
+  await saveToDb('injection', sqlInjections);
+  await saveToDb('mitigation', sqlMitigations);
+  await saveToDb('response', sqlResponses);
+  await saveToDb('system', sqlSystems);
+  await saveToDb('role', sqlRoles);
+  await saveToDb('action', sqlActions);
+  await saveToDb('curveball', sqlCurveballs);
+  await saveToDb('injection_response', sqlInjectionResponse);
+  await saveToDb('action_role', sqlActionRole);
 }
 
 module.exports = migrate;

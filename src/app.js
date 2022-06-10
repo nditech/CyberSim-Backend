@@ -11,7 +11,7 @@ const { getInjections } = require('./models/injection');
 const { getActions } = require('./models/action');
 const migrate = require('./util/migrate');
 const config = require('./config');
-const transformValidationErrors = require('./util/transformValidationErrors');
+const { transformValidationErrors } = require('./util/errors');
 
 const app = express();
 
@@ -85,10 +85,7 @@ app.post('/migrate', async (req, res) => {
         res.status(400).send({
           tableId: 'Invalid airtable base id',
         });
-      } else if (
-        err.validation ||
-        (Array.isArray(err) && err.every((e) => e.validation))
-      ) {
+      } else if (err.validation) {
         const errors = transformValidationErrors(err);
         res.status(400).send({
           validation: true,
