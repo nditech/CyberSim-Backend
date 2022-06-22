@@ -37,9 +37,8 @@ describe('Pause Simulation', () => {
   });
 
   test('should log', async () => {
-    const {
-      millis_taken_before_started: millisTakenBeforeStarted,
-    } = await pauseSimulation({ gameId });
+    const { millis_taken_before_started: millisTakenBeforeStarted } =
+      await pauseSimulation({ gameId });
 
     const gameLog = await db('game_log')
       .where({
