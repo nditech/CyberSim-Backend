@@ -106,7 +106,7 @@ exports.up = async (knex) => {
       .notNullable()
       .defaultTo('PREPARATION');
     tbl.decimal('poll').notNullable().defaultTo(40);
-    tbl.integer('budget').notNullable().defaultTo(6000);
+    tbl.integer('budget').notNullable().defaultTo(7000);
     tbl.timestamp('started_at', { useTz: true });
     tbl.boolean('paused').notNullable().defaultTo(true);
     tbl.integer('millis_taken_before_started').notNullable().defaultTo(0);
