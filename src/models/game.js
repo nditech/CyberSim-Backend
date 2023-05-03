@@ -39,6 +39,7 @@ const createGame = async (id) => {
     {
       id,
       budget: 6000,
+      poll: 55,
     },
     ['id'],
   );
