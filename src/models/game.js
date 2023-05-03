@@ -38,6 +38,11 @@ const createGame = async (id) => {
   await db('game').insert(
     {
       id,
+<<<<<<< Updated upstream
+=======
+      budget: 6000,
+      poll: 55,
+>>>>>>> Stashed changes
     },
     ['id'],
   );
