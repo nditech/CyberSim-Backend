@@ -38,6 +38,8 @@ const createGame = async (id) => {
   await db('game').insert(
     {
       id,
+      budget: 6000,
+      poll: 55.0,
     },
     ['id'],
   );
