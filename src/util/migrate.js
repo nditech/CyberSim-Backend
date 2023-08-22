@@ -48,6 +48,7 @@ function fetchTable(base, tableName) {
         },
         function done(err) {
           if (err) {
+            err.tableName = tableName;
             reject(err);
           } else {
             validate(airtableSchemas[tableName], allFields, tableName)
@@ -73,16 +74,16 @@ function addPartyLocation(locations) {
     : locations?.[0];
 }
 
-async function migrate(apiKey, baseId) {
+async function migrate(accessToken, baseId) {
   // connect to the airtable instance
   Airtable.configure({
     endpointUrl: 'https://api.airtable.com',
-    apiKey,
+    apiKey: accessToken,
   });
 
   const base = Airtable.base(baseId);
 
-  // do a starting "fake" fetch to check if the API key and table id are correct
+  // do a starting "fake" fetch to check if the personal access token and table id are correct
   await fetchTable(base, 'handbook_categories');
 
   // define arrays for junctions tables that must be added at the end of the migration

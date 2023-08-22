@@ -71,15 +71,15 @@ app.get('/curveballs', async (req, res) => {
 });
 
 app.post('/migrate', async (req, res) => {
-  const { password, apiKey, tableId } = req.body;
+  const { password, accessToken, tableId } = req.body;
   if (password === config.migrationPassword) {
     try {
-      await migrate(apiKey, tableId);
+      await migrate(accessToken, tableId);
       res.send();
     } catch (err) {
       if (err.error === 'AUTHENTICATION_REQUIRED') {
         res.status(400).send({
-          apiKey: 'Invalid airtable api key',
+          accessToken: 'Invalid airtable access token',
         });
       } else if (err.error === 'NOT_FOUND') {
         res.status(400).send({
@@ -91,6 +91,16 @@ app.post('/migrate', async (req, res) => {
           validation: true,
           message: err.message,
           errors,
+        });
+      } else if (err.error === 'NOT_AUTHORIZED') {
+        res.status(400).send({
+          validation: true, // Set this to "true" to show it in an alert box on the frontend.
+          message: err.message,
+          errors: [
+            {
+              message: `An authorization error has occurred! Please make sure that the base ID and the required personal access token scope settings are correct!`,
+            },
+          ],
         });
       } else {
         console.log(500);
