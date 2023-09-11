@@ -26,7 +26,7 @@ const checkEnviroment = async () => {
 
 checkEnviroment()
   .then(() => {
-    const port = process.env.PORT || 3001;
+    const port = process.env.PORT || 8080;
     const http = createServer(app);
     createSocket(http);
     const server = http.listen(port, () => {
