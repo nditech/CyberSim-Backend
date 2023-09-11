@@ -7,6 +7,6 @@ COPY . .
 
 RUN npm i --production
 
-EXPOSE 3001
+EXPOSE 8080
 
 CMD ["node", "."]
