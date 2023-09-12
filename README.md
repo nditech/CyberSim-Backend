@@ -96,13 +96,13 @@ To create a new Elastic Beanstalk environment follow these steps:
 14. Under the _Platform software_ settings you must set these 3 environment variables. You can modify these variables later at any time under the Configuration/Software Tab of the AWS Console:
 
 - **PORT**: The PORT must match the port exposed in the docker container which currently is **8080**.
-- **NODE_ENV**: Must be either `production`, `development` or `test`. If the given value is `test` the server will reset the Postgres Database on each restart.
+- **NODE_ENV**: Must be either `production`, `development`. (DEVNOTE: for local development it can be `test`. If the given value is `test` the server will reset the Postgres Database on each restart.)
 - **DB_URL**: The connection string for the Postgres Database which is the following: postgres://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>. You can find the <HOST>:<PORT> information about the DB under the "Connectivity & security / Endpoint (/Port)" tab of the databases RDS page.
 
 15. Optional environment variables:
 
 - **MIGRATION_PASSWORD**: Required for creating a migration on the frontends "Migration" page. Defaults to "secret".
-- **LOG_LEVEL**: Only for the `test` NODE_ENV. Defaults to "error".
+- **LOG_LEVEL**: Possible values: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace'. If it's not set, defaults to 'error'.
 
 ## RDS (e.g., ndi@aa1jiteus75zy8h)
 
