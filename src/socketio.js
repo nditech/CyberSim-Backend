@@ -28,22 +28,29 @@ module.exports = (http) => {
       logger.info('Facilitator DISCONNECT');
     });
 
-    socket.on(SocketEvents.CREATEGAME, async (id, callback) => {
-      logger.info('CREATEGAME: %s', id);
-      try {
-        const game = await createGame(id);
-        if (gameId) {
-          await socket.leave(gameId);
+    socket.on(
+      SocketEvents.CREATEGAME,
+      async (id, initialBudget, initialPollPercentage, callback) => {
+        logger.info('CREATEGAME: %s', id);
+        try {
+          const game = await createGame(
+            id,
+            initialBudget,
+            initialPollPercentage,
+          );
+          if (gameId) {
+            await socket.leave(gameId);
+          }
+          await socket.join(id);
+          gameId = id;
+          callback({ game });
+        } catch (_) {
+          callback({ error: 'Game id already exists!' });
         }
-        await socket.join(id);
-        gameId = id;
-        callback({ game });
-      } catch (_) {
-        callback({ error: 'Game id already exists!' });
-      }
-    });
+      },
+    );
 
-    socket.on(SocketEvents.JOINGAME, async (id, callback) => {
+    socket.on(SocketEvents.JOINGAME, async (id, _, __, callback) => {
       logger.info('JOINGAME: %s', id);
       try {
         const game = await getGame(id);
@@ -64,15 +71,11 @@ module.exports = (http) => {
 
     socket.on(
       SocketEvents.CHANGEMITIGATION,
-      async (
-        { id: mitigationId, type: mitigationType, value: mitigationValue },
-        callback,
-      ) => {
+      async ({ id: mitigationId, value: mitigationValue }, callback) => {
         logger.info(
           'CHANGEMITIGATION: %s',
           JSON.stringify({
             mitigationId,
-            mitigationType,
             mitigationValue,
             gameId,
           }),
@@ -80,7 +83,6 @@ module.exports = (http) => {
         try {
           const game = await changeMitigation({
             mitigationId,
-            mitigationType,
             mitigationValue,
             gameId,
           });

@@ -162,3 +162,21 @@ Go to the `<host>/migration` page (e.g. (https://cybersim.demcloud.org/migrate)[
    - After filling in the relevant Airtable details, click the "Migrate the database" button.
 
 By following these steps, you can successfully migrate data from Airtable to the PostgreSQL database, ensuring that your new game incorporates the customized data you have prepared.
+
+# Airtable Handbook
+
+### PURCHASED MITIGATIONS
+
+In the game, mitigations are organized into groups according to their category. You can customize the order of these mitigations using the following steps:
+
+1. Access the "purchase_mitigations" table.
+2. In the toolbar, click on the "Group" option, and then select the "category" field. Airtable will automatically reorganize the mitigations, grouping them just as they appear in the application.
+3. Within each category, you can rearrange the mitigations according to your preferences using the drag-and-drop feature. The order you set here will reflect how they appear in the actual game.
+
+### LOCATIONS
+
+Currently, the game exclusively accommodates exactly two locations. You have the flexibility to name these locations as you desire within the "locations" table.
+
+:warning: **Please exercise caution and refrain from modifying the "location_code" fields. Altering the default values ('hq', 'local') here can disrupt the application's functionality!** :warning:
+
+Changing the names of the locations in this section will solely impact how they are displayed in the header menu, tabs, and action titles. Role names (e.g., "HQ IT Team") remain distinct and should be configured separately within the **ROLES** table.
