@@ -6,11 +6,6 @@ const { dbSchemas, airtableSchemas } = require('./migration_schemas');
 const db = require('../models/db');
 const { throwNecessaryValidationErrors } = require('./errors');
 
-const locationMap = {
-  'Local Branch': 'local',
-  Headquarters: 'hq',
-};
-
 const typeMap = {
   Table: 'Table',
   Background: 'Background',
@@ -35,7 +30,9 @@ function fetchTable(base, tableName) {
 
   return new Promise((resolve, reject) => {
     base(tableName)
-      .select()
+      .select({
+        view: 'Grid view',
+      })
       .eachPage(
         (records, fetchNextPage) => {
           const fields = records.map((record) => ({
@@ -94,10 +91,10 @@ async function migrate(accessToken, baseId) {
     // fetch the backing tables that do not exist in our sql database and are only needed for data transformation
     fetchTable(base, 'purchased_mitigations_category'),
     fetchTable(base, 'handbook_categories'),
-    fetchTable(base, 'locations'),
     fetchTable(base, 'recommendations'),
     fetchTable(base, 'event_types'),
     // fetch main tables
+    fetchTable(base, 'locations'),
     fetchTable(base, 'events'),
     fetchTable(base, 'purchased_mitigations'),
     fetchTable(base, 'responses'),
@@ -115,11 +112,11 @@ async function migrate(accessToken, baseId) {
   const [
     rawPurchasedMitigationCategories,
     rawHandbookCategories,
-    rawLocations,
     rawRecommendations,
     rawEventTypes,
-    injections,
-    mitigations,
+    locations,
+    injections, // = events
+    mitigations, // = purchased_mitigations
     responses,
     systems,
     roles,
@@ -138,10 +135,10 @@ async function migrate(accessToken, baseId) {
     {},
   );
 
-  const locations = rawLocations.reduce(
-    (obj, { name, id }) => ({
+  const locationsMap = locations.reduce(
+    (obj, { id, location_code }) => ({
       ...obj,
-      [id]: locationMap[name],
+      [id]: location_code,
     }),
     {},
   );
@@ -173,7 +170,7 @@ async function migrate(accessToken, baseId) {
 
   // process events
   injections.forEach((injection) => {
-    injection.location = locations[injection.locations];
+    injection.location = locationsMap[injection.locations];
     injection.recommendations = recommendations[injection.recommendations];
     injection.type = eventTypes[injection.event_types] || 'Board';
     injection.followup_injecion = injection.followup_event;
@@ -194,40 +191,29 @@ async function migrate(accessToken, baseId) {
 
   // process mitigations
   mitigations.forEach((mitigation) => {
-    mitigation.hq_cost = mitigation.cost;
-    mitigation.local_cost = mitigation.cost;
-    const mitigationLocations = mitigation.locations.map((id) => locations[id]);
-    mitigation.is_hq = mitigationLocations.includes('hq');
-    mitigation.is_local = mitigationLocations.includes('local');
     mitigation.category = purchasedMitigationCategories[mitigation.category];
-  });
-
-  // process responses
-  responses.forEach((response) => {
-    response.location = addPartyLocation(
-      response.locations.map((id) => locations[id]),
-    );
-    response.mitigation_type = addPartyLocation(
-      response.mitigation_location?.map((id) => locations[id]),
-    );
-    response.required_mitigation_type = addPartyLocation(
-      response.required_mitigation_location?.map((id) => locations[id]),
-    );
   });
 
   // process systems
   systems.forEach((system) => {
-    system.type = addPartyLocation(system.locations.map((id) => locations[id]));
+    system.type = addPartyLocation(
+      system.locations.map((id) => locationsMap[id]),
+    );
   });
 
   // process actions
   actions.forEach((action) => {
-    action.type = locations[action.locations];
+    action.type = locationsMap[action.locations];
   });
   actions.forEach(({ id, role = [] }) => {
     role.forEach((roleId) =>
       actionRole.push({ action_id: id, role_id: roleId }),
     );
+  });
+
+  // process locations
+  locations.forEach((location) => {
+    location.type = location.location_code;
   });
 
   // clean the current db and re-migrate it
@@ -237,6 +223,7 @@ async function migrate(accessToken, baseId) {
   // add all the data to the db
   // sequential processing is important here as some tables rely on data from other tables to be already there
   const validatedSqlTables = await Promise.allSettled([
+    validateForDb('location', locations),
     validateForDb('injection', injections),
     validateForDb('mitigation', mitigations),
     validateForDb('response', responses),
@@ -254,6 +241,7 @@ async function migrate(accessToken, baseId) {
   );
 
   const [
+    sqlLocations,
     sqlInjections,
     sqlMitigations,
     sqlResponses,
@@ -265,6 +253,7 @@ async function migrate(accessToken, baseId) {
     sqlActionRole,
   ] = validatedSqlTables.map((table) => table.value);
 
+  await saveToDb('location', sqlLocations);
   await saveToDb('injection', sqlInjections);
   await saveToDb('mitigation', sqlMitigations);
   await saveToDb('response', sqlResponses);

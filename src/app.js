@@ -45,6 +45,11 @@ app.get('/mitigations', async (req, res) => {
   res.json(records);
 });
 
+app.get('/locations', async (req, res) => {
+  const records = await db('location');
+  res.json(records);
+});
+
 app.get('/systems', async (req, res) => {
   const records = await db('system');
   res.json(records);
