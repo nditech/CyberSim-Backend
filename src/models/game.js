@@ -34,15 +34,20 @@ const getGame = (id) =>
     )
     .first();
 
-const createGame = async (id) => {
+const createGame = async (
+  id,
+  initialBudget = 6000,
+  initialPollPercentage = 55,
+) => {
   await db('game').insert(
     {
       id,
-      budget: 6000,
-      poll: 55.0,
+      budget: initialBudget,
+      poll: initialPollPercentage,
     },
     ['id'],
   );
+
   const systems = await db('system').select('id as systemId');
   await db('game_system').insert(
     systems.map(({ systemId }) => ({
@@ -51,32 +56,16 @@ const createGame = async (id) => {
       state: true,
     })),
   );
-  const mitigations = await db('mitigation').select(
-    'id as mitigationId',
-    'is_hq as isHq',
-    'is_local as isLocal',
-  );
+
+  const mitigations = await db('mitigation').select('id as mitigationId');
   await db('game_mitigation').insert(
-    mitigations.reduce((acc, { mitigationId, isHq, isLocal }) => {
-      if (isHq) {
-        acc.push({
-          game_id: id,
-          mitigation_id: mitigationId,
-          location: 'hq',
-          state: false,
-        });
-      }
-      if (isLocal) {
-        acc.push({
-          game_id: id,
-          mitigation_id: mitigationId,
-          location: 'local',
-          state: false,
-        });
-      }
-      return acc;
-    }, []),
+    mitigations.map(({ mitigationId }) => ({
+      game_id: id,
+      mitigation_id: mitigationId,
+      state: false,
+    })),
   );
+
   const injections = await db('injection').select('id as injecionId');
   await db('game_injection').insert(
     injections.map(({ injecionId }) => ({
@@ -87,12 +76,7 @@ const createGame = async (id) => {
   return getGame(id);
 };
 
-const changeMitigation = async ({
-  mitigationId,
-  mitigationType,
-  mitigationValue,
-  gameId,
-}) => {
+const changeMitigation = async ({ mitigationId, mitigationValue, gameId }) => {
   try {
     const game = await db('game')
       .select(
@@ -115,13 +99,12 @@ const changeMitigation = async ({
       .where({
         game_id: gameId,
         mitigation_id: mitigationId,
-        location: mitigationType,
       })
       .first();
 
     if (gameMitigationValue !== mitigationValue) {
       const { cost } = await db('mitigation')
-        .select(`${mitigationType}_cost as cost`)
+        .select('cost')
         .where({ id: mitigationId })
         .first();
       if (cost) {
@@ -160,7 +143,6 @@ const changeMitigation = async ({
           game_timer: timeTaken,
           type: 'Budget Item Purchase',
           mitigation_id: mitigationId,
-          mitigation_type: mitigationType,
         });
       }
     }

@@ -6,6 +6,12 @@ const singleRef = yup
   .transform((array) => (Array.isArray(array) ? array[0] : array));
 const multiRef = yup.array().of(yup.string());
 
+// String constans
+const locationsShort = ['hq', 'local'];
+const locations = ['hq', 'local', 'party'];
+const injectionTypes = ['Table', 'Background', 'Board'];
+
+// Airtable DB schemas
 const airtableSchemas = {
   purchased_mitigations_category: yup.object({
     id,
@@ -18,6 +24,12 @@ const airtableSchemas = {
   locations: yup.object({
     id,
     name: yup.string(),
+    location_code: yup.string().required().oneOf(locationsShort),
+  }),
+  dictionary: yup.object({
+    id,
+    word: yup.string().required(),
+    synonym: yup.string().required(),
   }),
   recommendations: yup.object({
     id,
@@ -47,7 +59,6 @@ const airtableSchemas = {
   purchased_mitigations: yup.object({
     id,
     description: yup.string().required(),
-    locations: multiRef.required(),
     cost: yup.number(),
     category: singleRef.required(),
   }),
@@ -55,12 +66,9 @@ const airtableSchemas = {
     id,
     description: yup.string().required(),
     cost: yup.number(),
-    locations: multiRef.required(),
-    mitigation_location: multiRef,
     mitigation_id: singleRef,
     systems_to_restore: multiRef,
     required_mitigation: singleRef,
-    required_mitigation_location: multiRef,
   }),
   systems: yup.object({
     id,
@@ -90,10 +98,7 @@ const airtableSchemas = {
   }),
 };
 
-const locationsShort = ['hq', 'local'];
-const locations = ['hq', 'local', 'party'];
-const injectionTypes = ['Table', 'Background', 'Board'];
-
+// PostgreSQL DB schemas
 const dbSchemas = {
   injection: yup.object({
     id,
@@ -113,22 +118,16 @@ const dbSchemas = {
   mitigation: yup.object({
     id,
     description: yup.string().required(),
-    is_hq: yup.boolean().required(),
-    is_local: yup.boolean().required(),
-    hq_cost: yup.number(),
-    local_cost: yup.number(),
+    cost: yup.number(),
     category: yup.string().required(),
   }),
   response: yup.object({
     id,
     description: yup.string().required(),
     cost: yup.number(),
-    location: yup.string().oneOf(locations).required(),
-    mitigation_type: yup.string().oneOf(locations),
     mitigation_id: yup.string(),
     systems_to_restore: multiRef,
     required_mitigation: yup.string(),
-    required_mitigation_type: yup.string().oneOf(locations),
   }),
   system: yup.object({
     id,
@@ -139,6 +138,16 @@ const dbSchemas = {
   role: yup.object({
     id,
     name: yup.string().required(),
+  }),
+  location: yup.object({
+    id,
+    name: yup.string().required(),
+    type: yup.string().oneOf(locationsShort).required(),
+  }),
+  dictionary: yup.object({
+    id,
+    word: yup.string().required(),
+    synonym: yup.string().required(),
   }),
   action: yup.object({
     id,

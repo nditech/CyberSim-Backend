@@ -1,27 +1,17 @@
 const db = require('./db');
 
 const getResponseWithCost = (responseWithMitigationCosts) => {
-  const { hqMitCost, localMitCost, ...response } = responseWithMitigationCosts;
+  const { mitCost, ...response } = responseWithMitigationCosts;
   if (response.cost !== null) {
     return response;
   }
-  switch (response.mitigation_type) {
-    case 'local':
-      return { ...response, cost: localMitCost || 0 };
-    case 'hq':
-      return { ...response, cost: hqMitCost || 0 };
-    default:
-      return { ...response, cost: (hqMitCost || 0) + (localMitCost || 0) };
-  }
+
+  return { ...response, cost: mitCost || 0 };
 };
 
 const getResponsesById = async (responseIds) => {
   const responses = await db('response')
-    .select(
-      'response.*',
-      'mitigation.hq_cost as hqMitCost',
-      'mitigation.local_cost as localMitCost',
-    )
+    .select('response.*', 'mitigation.cost as mitCost')
     .leftOuterJoin('mitigation', 'response.mitigation_id', 'mitigation.id')
     .whereIn('response.id', responseIds);
 
@@ -30,11 +20,7 @@ const getResponsesById = async (responseIds) => {
 
 const getResponses = async () => {
   const records = await db('response')
-    .select(
-      'response.*',
-      'mitigation.hq_cost as hqMitCost',
-      'mitigation.local_cost as localMitCost',
-    )
+    .select('response.*', 'mitigation.cost as mitCost')
     .leftOuterJoin('mitigation', 'response.mitigation_id', 'mitigation.id');
   return records.map((response) => getResponseWithCost(response));
 };
