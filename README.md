@@ -180,3 +180,7 @@ Currently, the game exclusively accommodates exactly two locations. You have the
 :warning: **Please exercise caution and refrain from modifying the "location_code" fields. Altering the default values ('hq', 'local') here can disrupt the application's functionality!** :warning:
 
 Changing the names of the locations in this section will solely impact how they are displayed in the header menu, tabs, and action titles. Role names (e.g., "HQ IT Team") remain distinct and should be configured separately within the **ROLES** table.
+
+## DICTIONARY
+
+You have the ability to modify the terminology associated with "polls" in this section. For instance, you can replace "poll" or "budget" with alternative words. To introduce a new synonym, simply edit the synonym column as needed.

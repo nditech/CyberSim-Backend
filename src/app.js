@@ -50,6 +50,11 @@ app.get('/locations', async (req, res) => {
   res.json(records);
 });
 
+app.get('/dictionary', async (req, res) => {
+  const records = await db('dictionary').select('word', 'synonym');
+  res.json(records);
+});
+
 app.get('/systems', async (req, res) => {
   const records = await db('system');
   res.json(records);
