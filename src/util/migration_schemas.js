@@ -26,6 +26,11 @@ const airtableSchemas = {
     name: yup.string(),
     location_code: yup.string().required().oneOf(locationsShort),
   }),
+  dictionary: yup.object({
+    id,
+    word: yup.string().required(),
+    synonym: yup.string().required(),
+  }),
   recommendations: yup.object({
     id,
     name: yup.string(),
@@ -138,6 +143,11 @@ const dbSchemas = {
     id,
     name: yup.string().required(),
     type: yup.string().oneOf(locationsShort).required(),
+  }),
+  dictionary: yup.object({
+    id,
+    word: yup.string().required(),
+    synonym: yup.string().required(),
   }),
   action: yup.object({
     id,

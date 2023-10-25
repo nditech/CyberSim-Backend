@@ -95,6 +95,7 @@ async function migrate(accessToken, baseId) {
     fetchTable(base, 'event_types'),
     // fetch main tables
     fetchTable(base, 'locations'),
+    fetchTable(base, 'dictionary'),
     fetchTable(base, 'events'),
     fetchTable(base, 'purchased_mitigations'),
     fetchTable(base, 'responses'),
@@ -115,6 +116,7 @@ async function migrate(accessToken, baseId) {
     rawRecommendations,
     rawEventTypes,
     locations,
+    dictionary,
     injections, // = events
     mitigations, // = purchased_mitigations
     responses,
@@ -224,6 +226,7 @@ async function migrate(accessToken, baseId) {
   // sequential processing is important here as some tables rely on data from other tables to be already there
   const validatedSqlTables = await Promise.allSettled([
     validateForDb('location', locations),
+    validateForDb('dictionary', dictionary),
     validateForDb('injection', injections),
     validateForDb('mitigation', mitigations),
     validateForDb('response', responses),
@@ -242,6 +245,7 @@ async function migrate(accessToken, baseId) {
 
   const [
     sqlLocations,
+    sqlDictionary,
     sqlInjections,
     sqlMitigations,
     sqlResponses,
@@ -254,6 +258,7 @@ async function migrate(accessToken, baseId) {
   ] = validatedSqlTables.map((table) => table.value);
 
   await saveToDb('location', sqlLocations);
+  await saveToDb('dictionary', sqlDictionary);
   await saveToDb('injection', sqlInjections);
   await saveToDb('mitigation', sqlMitigations);
   await saveToDb('response', sqlResponses);
