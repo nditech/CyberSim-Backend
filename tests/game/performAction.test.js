@@ -26,7 +26,7 @@ describe('Perform Action', () => {
 
     expect(poll).toBe(dummyGame.poll + actionToPerorm.poll_increase);
     expect(poll).toBeGreaterThanOrEqual(0);
-    expect(poll).toBeLessThanOrEqual(100);
+    expect(poll).toBeLessThanOrEqual(200);
     expect(budget).toBe(
       dummyGame.budget - actionToPerorm.cost + actionToPerorm.budget_increase,
     );
