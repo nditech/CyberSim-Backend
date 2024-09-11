@@ -450,7 +450,7 @@ const deliverGameInjection = async ({ gameId, injectionId }) => {
       await db('game')
         .where({ id: gameId })
         .update({
-          poll: Math.max(0, Math.min(game.poll + pollChange, 100)),
+          poll: Math.max(0, Math.min(game.poll + pollChange, 200)),
         });
     }
     await db('game_injection')
@@ -540,7 +540,7 @@ const performAction = async ({ gameId, actionId }) => {
       .where({ id: gameId })
       .update({
         budget: Math.max(0, game.budget - cost + budgetIncrease),
-        poll: Math.max(0, Math.min(game.poll + pollIncrease, 100)),
+        poll: Math.max(0, Math.min(game.poll + pollIncrease, 200)),
       });
     await db('game_log').insert({
       game_id: gameId,
@@ -588,7 +588,7 @@ const performCurveball = async ({ gameId, curveballId }) => {
       .where({ id: gameId })
       .update({
         budget: loseAllBudget ? 0 : Math.max(0, game.budget + budgetChange),
-        poll: Math.min(Math.max(game.poll + pollChange, 0), 100),
+        poll: Math.min(Math.max(game.poll + pollChange, 0), 200),
       });
 
     await db('game_log').insert({
